@@ -49,68 +49,18 @@ const useBalance = (refreshInterval = 10000) => {
         throw new Error('Wallet getDetailedBalance method not available');
       }
 
-      // Use CLI's working pattern - getDetailedBalance and proper UTXO filtering
-      // First ensure wallet UTXOs are fresh
-      await wallet.initialize();
-
-      // Get detailed balance like CLI does (this works reliably)
-      const balanceData = await wallet.getDetailedBalance();
-      let spendableBalance = balanceData.total; // Start with total balance
-
-      // Calculate both spendable and total balances with detailed breakdown
-      if (wallet.utxos && wallet.utxos.utxoStore && wallet.utxos.utxoStore.xecUtxos) {
-        const utxos = wallet.utxos.utxoStore.xecUtxos;
-        let pureXecTotal = 0;
-        let totalUtxoValue = 0;
-        let tokenDustValue = 0;
-        let pureXecCount = 0;
-        let tokenUtxoCount = 0;
-
-        // Process each UTXO to separate spendable XEC from token dust
-        for (const utxo of utxos) {
-          // Get XEC amount using CLI's method - prefer sats property
-          let xecAmount = 0;
-          if (utxo.sats !== undefined) {
-            const satoshis = parseInt(utxo.sats) || 0;
-            xecAmount = satoshis / 100; // Convert from satoshis to XEC
-          } else if (utxo.value) {
-            const satoshis = parseInt(utxo.value) || 0;
-            xecAmount = satoshis / 100; // Convert from satoshis to XEC
-          }
-
-          // Add to total balance (includes all UTXOs)
-          totalUtxoValue += xecAmount;
-
-          // Separate pure XEC from token dust
-          if (utxo.token && utxo.token.tokenId) {
-            // This UTXO is locked with tokens (eToken dust)
-            tokenDustValue += xecAmount;
-            tokenUtxoCount++;
-          } else {
-            // This is pure XEC UTXO (spendable)
-            pureXecTotal += xecAmount;
-            pureXecCount++;
-          }
-        }
-
-        // Use the calculated values
-        spendableBalance = pureXecTotal;
-        const totalBalance = totalUtxoValue;
-
-        // Update balance breakdown atom
-        setBalanceBreakdown({
-          spendableBalance,
-          totalBalance,
-          tokenDustValue,
-          pureXecUtxos: pureXecCount,
-          tokenUtxos: tokenUtxoCount
-        });
-
-        // Update total balance atom
-        setTotalBalance(totalBalance);
-      }
-
-      const xecBalance = spendableBalance;
+      // Get balance data from wallet service (already fetches UTXOs via Chronik)
+      const balanceData = await wallet.getBalance();
+      
+      // Use the detailed balance breakdown from the service
+      const xecBalance = balanceData.balance; // Spendable XEC (no token dust)
+      const totalBalance = balanceData.totalBalance; // Total including token dust
+      
+      // Update balance breakdown atom
+      setBalanceBreakdown(balanceData.balanceBreakdown);
+      
+      // Update total balance atom
+      setTotalBalance(totalBalance);
 
       // Defensive check: ensure wallet is still connected after API call
       if (!wallet || !walletConnected) {

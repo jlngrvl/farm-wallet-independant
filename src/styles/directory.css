@@ -1,0 +1,12 @@
+/* directory.css */
+.directory-list {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px #e5e7eb;
+}
+.directory-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}

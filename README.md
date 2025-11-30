@@ -1,15 +1,30 @@
-# Farm Wallet
+# 🌾 Farm Wallet
 
-A simple, user-friendly single-token wallet for eCash (XEC) built with React and Vite. This wallet is designed to handle one specific token at a time, making it perfect for projects that need a focused, streamlined wallet experience.
+> **Version 2.0** - Refactored & Modernized
 
-## Features
+A beautiful, user-friendly wallet for **eCash (XEC)** and farm tokens, built with React 19, Vite, and **shadcn/ui**.
 
-- 🪙 **Single-token focus** - Configure for one specific token
-- 🌍 **Multi-language support** - Built-in internationalization
-- 📱 **Mobile-friendly** - Responsive design that works on all devices  
-- 📷 **QR code support** - Scan QR codes for easy transactions
-- ⚡ **Fast development** - Built with Vite for quick development cycles
-- 🔄 **Modern state management** - Uses Jotai for predictable state handling
+## ✨ Features
+
+- 🪙 **Multi-token support** - XEC + farm tokens
+- 🎨 **Modern UI** - Built with shadcn/ui + Tailwind CSS
+- 🌓 **Dark mode** - Automatic theme switching
+- 🌍 **Multi-language** - French & English support
+- 📱 **Mobile-first** - Responsive design optimized for mobile
+- 📷 **QR codes** - Scan & generate QR codes for payments
+- ⚡ **Real-time updates** - WebSocket integration with Chronik
+- 🔐 **Secure** - Non-custodial, keys stored locally
+- 🚀 **Fast** - Built with Vite for instant HMR
+
+## 🏗️ Architecture
+
+**Version 2.0** features a complete refactoring:
+- ✅ **shadcn/ui** - Modern, accessible components
+- ✅ **Tailwind CSS** - Utility-first styling (93% less CSS)
+- ✅ **Jotai** - Atomic state management
+- ✅ **Clear structure** - Separated concerns and clean imports
+
+📚 **[See full documentation](./docs/INDEX.md)**
 
 ## Quick Start
 
@@ -89,20 +104,30 @@ npm run lint
 npm run lint:fix
 ```
 
-## Repository Structure
+## 📂 Project Structure
 
 ```
 farm-wallet/
+├── docs/                  # 📚 Complete documentation
+│   ├── INDEX.md          # Documentation index
+│   ├── ARCHITECTURE.md   # Project architecture
+│   └── ...
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Main wallet pages
-│   ├── hooks/          # Custom React hooks
-│   ├── utils/          # Helper functions
-│   ├── i18n/          # Translation files
-│   └── styles/        # Styling
-├── public/            # Static assets
-└── dist/             # Built files (after npm run build)
+│   ├── components/
+│   │   ├── ui/          # 🎨 shadcn/ui base components
+│   │   ├── UI/          # 🏗️ Business components
+│   │   └── Layout/      # 📐 Layout components
+│   ├── pages/           # 📄 Application pages
+│   ├── hooks/           # 🪝 Custom React hooks
+│   ├── services/        # 🔌 Blockchain services
+│   ├── utils/           # 🛠️ Helper functions
+│   ├── i18n/           # 🌍 Translations (FR/EN)
+│   └── lib/            # Utilities (cn, etc.)
+├── public/             # Static assets
+└── dist/              # Built files (npm run build)
 ```
+
+**📖 [Full architecture documentation →](./docs/ARCHITECTURE.md)**
 
 ## Deployment
 
@@ -166,14 +191,25 @@ This wallet is open source and welcomes contributions!
 6. Push to your branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: React 19 + Vite 6
-- **State Management**: Jotai
-- **Styling**: Modern CSS
-- **Blockchain**: ecash-lib for eCash integration
-- **QR Codes**: Built-in QR code scanning and generation
-- **i18n**: react-i18next for translations
+- **Frontend**: React 19.1 + Vite 6
+- **UI Framework**: [shadcn/ui](https://ui.shadcn.com) + Tailwind CSS 4
+- **State Management**: Jotai (atomic state)
+- **Blockchain**: ecash-lib + Chronik WebSocket
+- **QR Codes**: qrcode.react
+- **i18n**: Custom i18n implementation (FR/EN)
+- **Routing**: React Router v7
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [📚 INDEX](./docs/INDEX.md) | Documentation index (start here!) |
+| [📐 ARCHITECTURE](./docs/ARCHITECTURE.md) | Complete project architecture |
+| [🧹 REFACTORING](./docs/REFACTORING_COMPLET.md) | Refactoring guide v2.0 |
+| [🎨 UI Components](./src/components/UI/README.md) | UI components documentation |
+| [💡 shadcn/ui](./docs/SHADCN_UI_ARCHITECTURE.md) | shadcn/ui architecture |
 
 ## License
 

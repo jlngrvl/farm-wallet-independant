@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
 import { loadMnemonic, saveMnemonic } from './utils/mnemonicStorage';
 
 // Language/Locale atom with localStorage persistence
@@ -23,13 +24,46 @@ export const localeAtom = atom(
 );
 localeAtom.debugLabel = 'localeAtom';
 
-// Token ID atom - gets from environment variable
-export const tokenIdAtom = atom(() => {
+// ============================================
+// FARM WALLET PLATFORM - Dynamic Token System
+// ============================================
+
+// Selected farm atom with localStorage persistence
+const getInitialSelectedFarm = () => {
   if (typeof window !== 'undefined') {
-    return import.meta.env.VITE_TOKEN_ID || '';
+    const saved = localStorage.getItem('farm-wallet-selected-farm');
+    return saved ? JSON.parse(saved) : null;
   }
-  return '';
+  return null;
+};
+
+const _selectedFarmAtom = atom(getInitialSelectedFarm());
+
+export const selectedFarmAtom = atom(
+  (get) => get(_selectedFarmAtom),
+  (get, set, newFarm) => {
+    if (typeof window !== 'undefined') {
+      if (newFarm) {
+        localStorage.setItem('farm-wallet-selected-farm', JSON.stringify(newFarm));
+      } else {
+        localStorage.removeItem('farm-wallet-selected-farm');
+      }
+    }
+    set(_selectedFarmAtom, newFarm);
+  }
+);
+selectedFarmAtom.debugLabel = 'selectedFarmAtom';
+
+// Current Token ID atom - derived from selected farm
+// This replaces the old static VITE_TOKEN_ID approach
+export const currentTokenIdAtom = atom((get) => {
+  const selectedFarm = get(selectedFarmAtom);
+  return selectedFarm?.tokenId || '';
 });
+currentTokenIdAtom.debugLabel = 'currentTokenIdAtom';
+
+// Legacy tokenIdAtom - now redirects to currentTokenIdAtom for backward compatibility
+export const tokenIdAtom = currentTokenIdAtom;
 tokenIdAtom.debugLabel = 'tokenIdAtom';
 
 // Fixed HD derivation path - always Cashtab type (1899)
@@ -42,7 +76,7 @@ export const optionsAtom = atom((get) => {
 
   return {
     hdPath,
-    // minimal-xec-wallet handles Chronik connection internally
+    // EcashWallet handles Chronik connection internally
     noUpdate: true,
   };
 });
@@ -153,16 +187,95 @@ export const coinSelectionStrategyAtom = atom('efficient');
 coinSelectionStrategyAtom.debugLabel = 'coinSelectionStrategyAtom';
 
 // Saved mnemonic atom with localStorage persistence for wallet restoration
-const getInitialMnemonic = () => {
-  return loadMnemonic();
-};
-
-export const savedMnemonicAtom = atom(getInitialMnemonic());
+// Using atomWithStorage for automatic localStorage sync (Jotai best practice)
+export const savedMnemonicAtom = atomWithStorage('farm-wallet-mnemonic', '', undefined, { unstable_getOnInit: true });
 savedMnemonicAtom.debugLabel = 'savedMnemonicAtom';
 
-// Mnemonic setter atom that also persists to localStorage
+// Mnemonic setter atom for backward compatibility
+// atomWithStorage handles persistence automatically, so this just updates the atom
 export const mnemonicSetterAtom = atom(null, (get, set, newMnemonic) => {
-  set(savedMnemonicAtom, newMnemonic);
-  saveMnemonic(newMnemonic);
+  set(savedMnemonicAtom, newMnemonic || '');
 });
 mnemonicSetterAtom.debugLabel = 'mnemonicSetterAtom';
+
+// ============================================
+// FAVORITE FARMS SYSTEM
+// ============================================
+
+// Load favorite farms from localStorage
+const getInitialFavoriteFarms = () => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('farm-wallet-favorite-farms');
+    return saved ? JSON.parse(saved) : [];
+  }
+  return [];
+};
+
+const _favoriteFarmsAtom = atom(getInitialFavoriteFarms());
+
+// Favorite farms atom with localStorage persistence
+export const favoriteFarmsAtom = atom(
+  (get) => get(_favoriteFarmsAtom),
+  (get, set, newFavorites) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('farm-wallet-favorite-farms', JSON.stringify(newFavorites));
+    }
+    set(_favoriteFarmsAtom, newFavorites);
+  }
+);
+favoriteFarmsAtom.debugLabel = 'favoriteFarmsAtom';
+
+// Helper atom to check if a farm is favorite
+export const isFarmFavoriteAtom = atom((get) => (farmId) => {
+  const favorites = get(favoriteFarmsAtom);
+  return favorites.includes(farmId);
+});
+isFarmFavoriteAtom.debugLabel = 'isFarmFavoriteAtom';
+
+// Helper atom to toggle favorite status
+export const toggleFarmFavoriteAtom = atom(
+  null,
+  (get, set, farmId) => {
+    const favorites = get(favoriteFarmsAtom);
+    if (favorites.includes(farmId)) {
+      // Remove from favorites
+      set(favoriteFarmsAtom, favorites.filter(id => id !== farmId));
+    } else {
+      // Add to favorites
+      set(favoriteFarmsAtom, [...favorites, farmId]);
+    }
+  }
+);
+toggleFarmFavoriteAtom.debugLabel = 'toggleFarmFavoriteAtom';
+
+// Wallet Modal Open State
+export const walletModalOpenAtom = atom(false);
+walletModalOpenAtom.debugLabel = 'walletModalOpenAtom';
+
+// ============================================
+// CURRENCY MANAGEMENT
+// ============================================
+
+/**
+ * Détecte la devise appropriée selon la locale du navigateur
+ * @returns {string} Code devise (EUR, USD, GBP, CHF)
+ */
+const getBrowserCurrency = () => {
+  if (typeof window === 'undefined') return 'EUR';
+  
+  const lang = navigator.language || navigator.userLanguage || 'fr';
+  
+  // Mapping intelligent selon la locale
+  if (lang.includes('US')) return 'USD'; // États-Unis
+  if (lang.includes('GB')) return 'GBP'; // Royaume-Uni
+  if (lang.includes('CH')) return 'CHF'; // Suisse
+  
+  // PAR DÉFAUT : EUR (France, Belgique, Allemagne, Espagne, Italie et reste du monde)
+  return 'EUR';
+};
+
+// Currency selection atom with localStorage persistence and intelligent browser detection
+// Supported currencies: EUR, USD, GBP, CHF
+// Default: getBrowserCurrency() with EUR fallback for francophone audience
+export const currencyAtom = atomWithStorage('app_currency', getBrowserCurrency());
+currencyAtom.debugLabel = 'currencyAtom';

@@ -25,4 +25,6 @@ dist-ssr
 .vercel
 .env
 
-minimal-xec-wallet.min.js
+
+*storybook.log
+storybook-static

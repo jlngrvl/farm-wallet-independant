@@ -1,4 +1,18 @@
+// Legacy hooks (wrap new EcashWallet service for backward compatibility)
 export { default as useBalance } from './useBalance';
-export { default as useConnectWallet } from './useConnectWallet';
-export { useTranslation } from './useTranslation';
 export { useToken } from './useToken';
+
+// New professional hooks
+export { 
+  useEcashWallet, 
+  useEcashBalance, 
+  useEcashToken, 
+  useEcashXec 
+} from './useEcashWallet';
+
+// Utility hooks
+export { useTranslation } from './useTranslation';
+export { useFarms, useFarm } from './useFarms';
+export { useChronikWebSocket } from './useChronikWebSocket';
+export { useXecPrice } from './useXecPrice';
+export { useAdmin } from './useAdmin';

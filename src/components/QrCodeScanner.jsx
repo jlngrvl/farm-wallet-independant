@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import PropTypes from 'prop-types';
+import { useTranslation } from '../hooks/useTranslation';
 
 const QrCodeScanner = ({ onAddressDetected }) => {
+  const { t } = useTranslation();
   const [error, setError] = useState(null);
 
   const handleScan = (result) => {
@@ -23,17 +25,14 @@ const QrCodeScanner = ({ onAddressDetected }) => {
   if (error) {
     return (
       <div className="qr-scanner-error">
-        <p style={{ color: '#f44336', marginBottom: '8px' }}>
-          Camera Error: {error}
-        </p>
-        <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', marginBottom: '12px' }}>
-          Please enter the eCash address manually above.
+        <p style={{ color: '#f44336', marginBottom: '8px', fontWeight: '600' }}>
+          {t('qr.cameraError') || 'Camera Error: Permission denied. Enter address manually.'}
         </p>
         <button
           onClick={handleRetry}
           className="retry-button"
         >
-          Try Again
+          {t('qr.retry') || 'Retry'}
         </button>
       </div>
     );

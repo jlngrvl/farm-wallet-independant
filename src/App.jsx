@@ -1,18 +1,28 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { scriptLoadedAtom, walletConnectedAtom, localeAtom } from './atoms';
+import { localeAtom, savedMnemonicAtom } from './atoms';
 import i18n from './i18n';
 
 // Pages
-import HomePage from './pages/HomePage';
+import DirectoryPage from './pages/DirectoryPage';
+import WalletDashboard from './pages/WalletDashboard';
 import SendPage from './pages/SendPage';
-import FundPage from './pages/FundPage';
+import SettingsPage from './pages/SettingsPage';
+import FavoritesPage from './pages/FavoritesPage';
+import FarmerInfoPage from './pages/FarmerInfoPage';
+import FaqPage from './pages/FaqPage';
+import CreateTokenPage from './pages/CreateTokenPage';
 
 // Layout & Components
-import DisconnectedView from './components/Layout/DisconnectedView';
+import ProtectedRoute from './components/ProtectedRoute';
 import ThemeProvider from './components/ThemeProvider';
 import Notification from './components/Notification';
+import LoadingScreen from './components/LoadingScreen';
+
+// Hooks
+import { useEcashWallet } from './hooks/useEcashWallet';
+import { useChronikWebSocket } from './hooks/useChronikWebSocket';
 
 // i18n
 import './i18n';
@@ -23,9 +33,12 @@ import './styles/themes.css';
 import './styles/layout.css';
 
 function App() {
-  const [scriptLoaded] = useAtom(scriptLoadedAtom);
-  const [walletConnected] = useAtom(walletConnectedAtom);
   const [locale] = useAtom(localeAtom);
+  const [savedMnemonic] = useAtom(savedMnemonicAtom);
+  const { walletConnected, loading, initializeWallet } = useEcashWallet();
+  
+  // Initialize Chronik WebSocket for real-time balance updates
+  useChronikWebSocket();
 
   useEffect(() => {
     // Initialize i18n on app load
@@ -41,11 +54,14 @@ function App() {
     }
   }, [locale]);
 
-  // Show disconnected view when script not loaded or wallet not connected
-  if (!scriptLoaded || !walletConnected) {
+  // NOTE: Auto-initialization is handled by useEcashWallet hook
+  // No need to call initializeWallet here to avoid infinite loop
+
+  // Show loading state while wallet initializes
+  if (loading) {
     return (
       <ThemeProvider>
-        <DisconnectedView />
+        <LoadingScreen />
       </ThemeProvider>
     );
   }
@@ -53,13 +69,86 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="app-container">
+        <div className="app-container bg-red-500">
           <Notification />
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<Navigate to="/" replace />} />
-            <Route path="/send" element={<SendPage />} />
-            <Route path="/fund" element={<FundPage />} />
+            {/* ========================================
+                ROUTES PUBLIQUES (Sans wallet requis)
+                ======================================== */}
+            
+            {/* Annuaire - Point d'entrée public */}
+            <Route path="/" element={<DirectoryPage />} />
+            
+            {/* Espace Producteur - DOIT Être PUBLIC */}
+            <Route path="/farmer-info" element={<FarmerInfoPage />} />
+            
+            {/* FAQ - Page d'aide publique */}
+            <Route path="/faq" element={<FaqPage />} />
+            
+            {/* ========================================
+                ROUTES PRIVÉES (Wallet requis)
+                ======================================== */}
+            
+            {/* Dashboard personnel (Wallet, ferme optionnelle) */}
+            <Route 
+              path="/wallet" 
+              element={
+                <ProtectedRoute requireFarm={false}>
+                  <WalletDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Envoyer des tokens */}
+            <Route 
+              path="/send" 
+              element={
+                <ProtectedRoute requireFarm={false}>
+                  <SendPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Fermes favorites */}
+            <Route 
+              path="/favorites" 
+              element={
+                <ProtectedRoute requireFarm={false}>
+                  <FavoritesPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Paramètres */}
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute requireFarm={false}>
+                  <SettingsPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Création de jetons */}
+            <Route 
+              path="/create-token" 
+              element={
+                <ProtectedRoute requireFarm={false}>
+                  <CreateTokenPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* ========================================
+                REDIRECTIONS & COMPATIBILITÉ
+                ======================================== */}
+            
+            {/* Anciennes routes */}
+            <Route path="/home" element={<Navigate to="/wallet" replace />} />
+            <Route path="/directory" element={<Navigate to="/" replace />} />
+            <Route path="/fund" element={<Navigate to="/settings" replace />} />
+            
+            {/* Catch-all - Redirection vers annuaire */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

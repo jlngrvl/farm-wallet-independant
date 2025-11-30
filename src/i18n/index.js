@@ -16,8 +16,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en', // default language
-    fallbackLng: 'en',
+    lng: undefined, // Let detector choose, will fallback to 'fr' if not found
+    fallbackLng: 'fr', // Français par défaut (public francophone prioritaire)
 
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],

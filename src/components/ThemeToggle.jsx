@@ -16,13 +16,29 @@ const ThemeToggle = ({ compact = false, className = '' }) => {
   return (
     <button
       onClick={toggleTheme}
-      className={`theme-toggle ${compact ? 'theme-toggle-compact' : ''} ${className}`}
+      className={`
+        inline-flex items-center justify-center
+        w-10 h-10 rounded-full
+        border-2 border-gray-300 dark:border-gray-600
+        bg-white dark:bg-gray-800
+        text-gray-600 dark:text-gray-300
+        hover:bg-gray-100 dark:hover:bg-gray-700
+        hover:border-blue-500 dark:hover:border-blue-400
+        hover:text-blue-600 dark:hover:text-blue-400
+        hover:shadow-lg hover:shadow-blue-500/30
+        hover:scale-110
+        active:scale-95
+        transition-all duration-300
+        ${compact ? 'w-8 h-8' : ''}
+        ${className}
+      `}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
       title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
-      {isDark ? (
-        // Sun icon for switching to light theme
-        <svg
+      <div className="transition-transform duration-500 hover:rotate-180">
+        {isDark ? (
+          // Sun icon for switching to light theme
+          <svg
           width="20"
           height="20"
           viewBox="0 0 24 24"
@@ -49,7 +65,8 @@ const ThemeToggle = ({ compact = false, className = '' }) => {
         >
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
-      )}
+        )}
+      </div>
     </button>
   );
 };

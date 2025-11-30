@@ -17,7 +17,7 @@ const MobileLayout = ({ title, children }) => {
   // Show mobile layout when wallet is connected
   return (
     <div className="mobile-layout">
-      <TopBar title={title} />
+      <TopBar />
 
       <div className="main-content">
         {children}
@@ -29,7 +29,7 @@ const MobileLayout = ({ title, children }) => {
 };
 
 MobileLayout.propTypes = {
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   children: PropTypes.node.isRequired
 };
 

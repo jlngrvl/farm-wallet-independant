@@ -5,11 +5,13 @@ import {
   busyAtom,
   walletAtom,
   walletConnectedAtom,
-  balanceRefreshTriggerAtom
+  balanceRefreshTriggerAtom,
+  currencyAtom
 } from '../atoms';
 import QrCodeScanner from './QrCodeScanner';
 import { useTranslation } from '../hooks/useTranslation';
 import useBalance from '../hooks/useBalance';
+import { useXecPrice } from '../hooks/useXecPrice';
 import { sanitizeInput, isValidXECAddress, isValidAmount } from '../utils/validation';
 import '../styles/sendxec.css';
 
@@ -21,6 +23,8 @@ const SendXEC = () => {
   const [busy, setBusy] = useAtom(busyAtom);
   const setBalanceRefreshTrigger = useSetAtom(balanceRefreshTriggerAtom);
   const { balanceBreakdown } = useBalance();
+  const [currency] = useAtom(currencyAtom);
+  const price = useXecPrice();
 
   const [sendForm, setSendForm] = useState({
     address: '',
@@ -133,7 +137,16 @@ const SendXEC = () => {
         return;
       }
 
-      // Check if we have enough spendable balance
+      // Check minimum amount (dust limit)
+      if (amount < 5.46) {
+        setNotification({ 
+          type: 'error', 
+          message: t('xec.validation.minimumAmount') || 'Le montant minimum pour une transaction est de 5.46 XEC.'
+        });
+        return;
+      }
+
+      // Check if we have enough balance (use SPENDABLE balance, not total)
       const spendableXEC = balanceBreakdown?.spendableBalance || 0;
       if (amount > spendableXEC) {
         setNotification({
@@ -146,12 +159,31 @@ const SendXEC = () => {
         return;
       }
 
-      // Check dust prevention - ensure at least 6 XEC remains after send
-      const remainingAfterSend = spendableXEC - amount;
-      if (remainingAfterSend < 6 && spendableXEC >= 6) {
+      // WARNING: Check if change will be lost due to dust limit
+      // Fee estimate: 2.5 XEC, Dust limit: 5.46 XEC
+      const feeEstimate = 2.5;
+      const dustLimit = 5.46;
+      const estimatedChange = spendableXEC - amount - feeEstimate;
+      
+      // Si le change sera perdu (entre 0 et dust limit)
+      if (estimatedChange > 0 && estimatedChange < dustLimit) {
+        const lostAmount = estimatedChange.toFixed(2);
+        const sendAllOption = (amount + estimatedChange).toFixed(2);
+        const safeOption = Math.max(0, spendableXEC - dustLimit - feeEstimate).toFixed(2);
+        
+        setNotification({
+          type: 'warning',
+          message: `⚠️ ${lostAmount} XEC seront perdus en frais (change < ${dustLimit} XEC minimum). Envoyez plutôt ${sendAllOption} XEC (tout) ou ${safeOption} XEC (garde ${dustLimit} XEC).`
+        });
+        return;
+      }
+      
+      // Si le change sera négatif (pas assez de fonds pour les frais)
+      if (estimatedChange < 0) {
+        const needed = Math.abs(estimatedChange).toFixed(2);
         setNotification({
           type: 'error',
-          message: t('xec.validation.dustPrevention')
+          message: `Solde insuffisant. Il manque ${needed} XEC pour couvrir les frais (${feeEstimate} XEC).`
         });
         return;
       }
@@ -159,22 +191,27 @@ const SendXEC = () => {
       setBusy(true);
 
       try {
-        console.log(`Sending ${amount} XEC to:`, sanitizedRecipient);
-
-        // Convert XEC amount to satoshis (1 XEC = 100 satoshis)
-        const amountSats = Math.round(amount * 100);
+        // 1. Convert to number first
+        const numericAmount = parseFloat(amount);
+        
+        // 2. Format as String with exactly 2 decimals (e.g., "13.64")
+        // This avoids floating point precision issues like 13.639999999
+        const cleanAmount = numericAmount.toFixed(2);
+        
+        console.log(`Envoi sécurisé : ${cleanAmount} XEC (type: ${typeof cleanAmount})`);
+        console.log(`Sending to:`, sanitizedRecipient);
 
         // Pre-send validation
-        if (!amountSats || isNaN(amountSats) || amountSats <= 0) {
-          throw new Error(`Invalid amount calculation: ${amountSats} (from ${amount} XEC)`);
+        if (!cleanAmount || isNaN(cleanAmount) || parseFloat(cleanAmount) <= 0) {
+          throw new Error(`Invalid amount: ${cleanAmount} XEC`);
         }
-
-        // Create outputs with correct property name (amountSat, not amountSats)
-        const outputs = [{ address: sanitizedRecipient, amountSat: amountSats }];
 
         console.log('Broadcasting transaction...');
 
-        const txid = await wallet.sendXec(outputs);
+        // Service sendXec expects (toAddress, amountXec)
+        // Send cleanAmount as String with exactly 2 decimals
+        const result = await wallet.sendXec(sanitizedRecipient, cleanAmount);
+        const txid = result.txid;
 
         console.log('Send successful, txid:', txid);
 
@@ -182,7 +219,10 @@ const SendXEC = () => {
         setLastTransactionTime(Date.now());
 
         // Trigger balance refresh after successful transaction
-        setBalanceRefreshTrigger(Date.now());
+        // Add delay to allow Chronik to propagate the transaction
+        setTimeout(() => {
+          setBalanceRefreshTrigger(Date.now());
+        }, 2000); // 2 seconds delay for Chronik propagation
 
         // Reset form and show success
         setSendForm({
@@ -193,7 +233,7 @@ const SendXEC = () => {
         setNotification({
           type: 'success',
           message: t('xec.sendSuccess', {
-            amount: amount.toFixed(2),
+            amount: cleanAmount,
             address: sanitizedRecipient.substring(0, 15),
             txid: txid.substring(0, 8)
           })
@@ -241,10 +281,19 @@ const SendXEC = () => {
 
   const setMaxAmount = () => {
     if (balanceBreakdown) {
+      // Utiliser le solde SPENDABLE (XEC purs) pas le total
       const spendableXEC = balanceBreakdown.spendableBalance || 0;
-      // Leave 6 XEC minimum to prevent dust UTXOs
-      const maxSendable = Math.max(0, spendableXEC - 6);
-      handleInputChange('amount', maxSendable.toString());
+      
+      // Si le solde est 0 ou proche de 0, ne rien mettre
+      if (spendableXEC < 0.01) {
+        handleInputChange('amount', '0');
+        return;
+      }
+      
+      // Calcul optimisé : Frais réels (3 XEC) + marge de sécurité (0.1 XEC)
+      const maxAmount = Math.max(0, spendableXEC - 3.1);
+      
+      handleInputChange('amount', maxAmount.toFixed(2));
     }
   };
 
@@ -268,8 +317,29 @@ const SendXEC = () => {
               onClick={() => setShowScanner(true)}
               className="scan-button"
               disabled={busy}
+              title={t('common.qrScan')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px 12px'
+              }}
             >
-              {t('common.qrScan')}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
             </button>
           </div>
           {sendForm.address && sendForm.address.length > 10 && !isValidXECAddress(sendForm.address) && (
@@ -325,9 +395,26 @@ const SendXEC = () => {
               {t('xec.validation.invalidAmount')}
             </div>
           )}
+          {/* Bloc regroupé des infos */}
           {balanceBreakdown && (
-            <div className="balance-info">
-              {t('xec.available')}: {balanceBreakdown.spendableBalance?.toFixed(2) || 0} XEC
+            <div style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: 'var(--bg-secondary, #f5f5f5)',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              color: 'var(--text-secondary, #666)',
+              lineHeight: '1.6'
+            }}>
+              <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                📊 Disponible: {balanceBreakdown.spendableBalance?.toFixed(2) || 0} XEC
+                {price && (() => {
+                  const converted = price.convert(balanceBreakdown.spendableBalance || 0, currency);
+                  return converted !== null ? ` (≈ ${converted.toFixed(2)} ${currency})` : '';
+                })()}
+              </div>
+              <div>⚠️ Min. envoi : 5.46 XEC</div>
+              <div>🔒 Réserve frais : ~3 XEC</div>
             </div>
           )}
         </div>
@@ -339,7 +426,7 @@ const SendXEC = () => {
             className="send-button"
             disabled={busy || !sendForm.address || !sendForm.amount || !walletConnected || countdown > 0}
           >
-            {busy ? t('xec.sending') : countdown > 0 ? t('xec.waitCountdown', { countdown }) : t('common.send')}
+            {busy ? t('xec.sending') : countdown > 0 ? t('xec.waitCountdown', { countdown }) : `✔️ ${t('common.confirmSend') || 'Confirmer l’envoi'}`}
           </button>
         </div>
       </form>

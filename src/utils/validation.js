@@ -160,14 +160,7 @@ export const isValidWIF = (privateKey) => {
 
     const sanitized = sanitizeInput(privateKey, 'wif');
 
-    // Use minimal-xec-wallet's robust WIF validation
-    // This includes cryptographic checksum validation and secp256k1 range checking
-    if (typeof window !== 'undefined' && window.MinimalXecWallet) {
-      const tempWallet = new window.MinimalXecWallet();
-      return tempWallet.validateWIF(sanitized);
-    }
-
-    // Fallback to basic format validation if minimal-xec-wallet not available
+    // Use ecash-lib's WIF validation
     // WIF should be 51 or 52 characters and start with L, K, 5, c, or 9
     // L and K are for mainnet compressed keys (52 chars)
     // 5 is for mainnet uncompressed keys (51 chars)

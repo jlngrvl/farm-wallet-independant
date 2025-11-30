@@ -9,12 +9,14 @@ import {
   balanceRefreshTriggerAtom,
   tokenRefreshTriggerAtom,
   coinSelectionStrategyAtom,
-  balanceBreakdownAtom
+  balanceBreakdownAtom,
+  selectedFarmAtom
 } from '../atoms';
 import QrCodeScanner from './QrCodeScanner';
 import XecFeeBalance from './XecFeeBalance';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToken } from '../hooks/useToken';
+import { useFarms } from '../hooks/useFarms';
 import { sanitizeInput, isValidXECAddress, isValidAmount } from '../utils/validation';
 import { handleError, safeAsyncOperation } from '../utils/errorHandler';
 import '../styles/sendxec.css';
@@ -25,6 +27,8 @@ const TokenSend = () => {
   const [walletConnected] = useAtom(walletConnectedAtom);
   const { token } = useToken();
   const [tokenId] = useAtom(tokenIdAtom);
+  const [selectedFarm] = useAtom(selectedFarmAtom);
+  const { farms } = useFarms();
   const setNotification = useSetAtom(notificationAtom);
   const [busy, setBusy] = useAtom(busyAtom);
   const setBalanceRefreshTrigger = useSetAtom(balanceRefreshTriggerAtom);
@@ -187,61 +191,35 @@ const TokenSend = () => {
 
       setBusy(true);
 
-      const result = await safeAsyncOperation(
-        async () => {
-          // Ensure wallet is initialized
-          if (!wallet.isInitialized) {
-            await wallet.initialize();
-          }
-
-          // Refresh wallet UTXOs before sending to avoid stale UTXO mempool conflicts
-          await wallet.initialize();
-
-          // Verify token balance after refresh
-          const refreshedTokens = await wallet.listETokens();
-          const refreshedToken = refreshedTokens.find(t => t.tokenId === tokenId);
-          if (!refreshedToken) {
-            throw new Error('Token not found after UTXO refresh. Please check your token balance.');
-          }
-
-          // Send tokens
-          const outputs = [{
-            address: sanitizedRecipient,
-            amount: amount // Use display amount, not atoms
-          }];
-
-          // Try wallet.sendETokens with fee rate and strategy (primary method from CLI)
-          let txid;
-          try {
-            const sendOptions = {
-              feeRate: 2.0,
-              coinSelectionStrategy: strategy
-            };
-            txid = await wallet.sendETokens(tokenId, outputs, sendOptions);
-          } catch {
-            // Fallback to hybridTokens.sendTokens with strategy (CLI pattern)
-            const sendOptions = {
-              feeRate: 2.0,
-              coinSelectionStrategy: strategy
-            };
-            txid = await wallet.hybridTokens.sendTokens(
-              tokenId,
-              outputs,
-              {
-                mnemonic: wallet.walletInfo.mnemonic,
-                xecAddress: wallet.walletInfo.xecAddress,
-                hdPath: wallet.walletInfo.hdPath,
-                privateKey: wallet.walletInfo.privateKey,
-                publicKey: wallet.walletInfo.publicKey
-              },
-              wallet.utxos.utxoStore.xecUtxos,
-              sendOptions.feeRate
-            );
-          }
-
-          return txid;
-        },
-        'send_tokens'
+      // Clean amount: force exactly 2 decimals to avoid floating point issues
+      const cleanAmount = String(amount).replace(',', '.');
+      
+      // Enrich token with farm metadata (protocol and decimals)
+      let tokenProtocol = 'SLP';
+      let tokenDecimals = 0;
+      
+      // Try to get metadata from selectedFarm first
+      if (selectedFarm && selectedFarm.tokenId === tokenId) {
+        tokenProtocol = selectedFarm.protocol || 'SLP';
+        tokenDecimals = selectedFarm.decimals || 0;
+      } else {
+        // Fallback: search in farms list by tokenId
+        const farm = farms.find(f => f.tokenId === tokenId);
+        if (farm) {
+          tokenProtocol = farm.protocol || 'SLP';
+          tokenDecimals = farm.decimals || 0;
+        }
+      }
+      
+      console.log(`🚀 Envoi Token ${token.symbol} (Protocol: ${tokenProtocol}, Decimals: ${tokenDecimals})`);
+      
+      // Use new sendToken method with protocol and decimals support
+      const result = await wallet.sendToken(
+        tokenId,
+        sanitizedRecipient,
+        cleanAmount,
+        tokenDecimals,              // Support decimals (important for EVA: 2)
+        tokenProtocol               // Support ALP/SLP (important for EVA: ALP)
       );
 
       // Record successful transaction time
@@ -263,7 +241,7 @@ const TokenSend = () => {
           amount,
           symbol: token.symbol || 'tokens',
           address: sanitizedRecipient.substring(0, 15),
-          txid: result.substring(0, 8)
+          txid: result.txid.substring(0, 8)
         })
       });
 

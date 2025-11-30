@@ -1,10 +1,34 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Main app styles - extends from ecash-wallet */
+
+/* Root element theming */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
 
 .app-container {
   width: 100%;
   height: 100vh;
-  background: var(--color-background, #ffffff);
-  color: var(--color-text, #333333);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -29,5 +53,24 @@
   
   .token-info {
     font-size: 10px;
+  }
+}
+
+/* Page Header Titles */
+.page-header-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 1rem 0 1.5rem 0;
+  padding: 0 1rem;
+  text-align: left;
+  line-height: 1.2;
+}
+
+@media (max-width: 600px) {
+  .page-header-title {
+    font-size: 1.5rem;
+    margin: 0.75rem 0 1rem 0;
+    padding: 0 0.75rem;
   }
 }

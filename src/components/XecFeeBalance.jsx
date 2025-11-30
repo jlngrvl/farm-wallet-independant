@@ -1,4 +1,5 @@
 import { useAtom } from 'jotai';
+import { useNavigate } from 'react-router-dom';
 import { walletConnectedAtom, walletAtom, balanceBreakdownAtom } from '../atoms';
 import { useTranslation } from '../hooks/useTranslation';
 import { useBalance } from '../hooks';
@@ -6,6 +7,7 @@ import '../styles/xec-fee-balance.css';
 
 const XecFeeBalance = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [walletConnected] = useAtom(walletConnectedAtom);
   const [wallet] = useAtom(walletAtom);
   const [balanceBreakdown] = useAtom(balanceBreakdownAtom);
@@ -21,8 +23,19 @@ const XecFeeBalance = () => {
 
   const isCriticallyLow = totalBalance < estimatedFee;
 
+  const handleClick = () => {
+    navigate('/settings');
+  };
+
   return (
-    <div className="xec-fee-balance">
+    <div 
+      className="xec-fee-balance clickable" 
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      title={t('navigation.settings') || 'Paramètres'}
+    >
       <div className="fee-balance-header">
         <span className="fee-balance-label">
           {t('fees.available')}

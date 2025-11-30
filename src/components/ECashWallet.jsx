@@ -1,28 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { walletConnectedAtom, savedMnemonicAtom, mnemonicSetterAtom, mnemonicCollapsedAtom } from '../atoms';
-import { validateMnemonic, generateMnemonic } from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
-import { useConnectWallet } from '../hooks';
+import { walletConnectedAtom, savedMnemonicAtom, mnemonicSetterAtom, mnemonicCollapsedAtom, selectedFarmAtom, notificationAtom } from '../atoms';
+import { validateMnemonic as validateMnemonicBip39, generateMnemonic as generateMnemonicBip39 } from '../services/ecashWallet';
+import { useEcashWallet } from '../hooks/useEcashWallet';
 import { useTranslation } from '../hooks/useTranslation';
 import '../styles/ecashwallet.css';
 
-const ECashWallet = () => {
+const ECashWallet = ({ onWalletConnected }) => {
   const { t } = useTranslation();
   const [walletConnected] = useAtom(walletConnectedAtom);
   const [savedMnemonic] = useAtom(savedMnemonicAtom);
   const [, setSavedMnemonic] = useAtom(mnemonicSetterAtom);
   const [mnemonicCollapsed, setMnemonicCollapsed] = useAtom(mnemonicCollapsedAtom);
+  const [, setNotification] = useAtom(notificationAtom);
 
-  const { importWallet, clearWalletData } = useConnectWallet();
+  const { importWallet, resetWallet, generateNewWallet } = useEcashWallet();
+  const [, setSelectedFarm] = useAtom(selectedFarmAtom);
 
-  const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [editableMnemonic, setEditableMnemonic] = useState('');
+  const [showImport, setShowImport] = useState(false);
 
-  const generateNewMnemonic = () => {
+  const generateNewMnemonicHandler = () => {
     try {
-      const newMnemonic = generateMnemonic(wordlist);
+      const newMnemonic = generateMnemonicBip39();
       setEditableMnemonic(newMnemonic);
       setSuccessMessage('');
       setErrorMessage('');
@@ -37,56 +38,66 @@ const ECashWallet = () => {
     try {
       const mnemonicToUse = editableMnemonic || savedMnemonic;
       if (!mnemonicToUse.trim()) {
-        setSuccessMessage('');
         setErrorMessage('No mnemonic available to connect.');
         return;
       }
 
-      if (!validateMnemonic(mnemonicToUse.trim(), wordlist)) {
-        setSuccessMessage('');
+      if (!validateMnemonicBip39(mnemonicToUse.trim())) {
         setErrorMessage('Invalid mnemonic. Please check your input.');
         return;
       }
 
-      setSuccessMessage('');
       setErrorMessage('');
+      
+      console.log('🔄 Attempting to import wallet...');
       await importWallet(mnemonicToUse);
+      
+      console.log('✅ Wallet connection successful');
       setEditableMnemonic('');
+      setNotification({
+        type: 'success',
+        message: t('wallet.connectedSuccess') || 'Wallet connected successfully!'
+      });
+      if (onWalletConnected) {
+        onWalletConnected();
+      }
     } catch (error) {
-      console.error('Failed to connect from saved mnemonic:', error);
-      setSuccessMessage('');
-      setErrorMessage(error.message);
+      console.error('❌ Failed to connect from saved mnemonic:', error);
+      console.error('Error details:', error.stack);
+      setErrorMessage(`Connection failed: ${error.message}`);
     }
   };
 
   const handleSaveMnemonic = () => {
     if (!editableMnemonic.trim()) {
-      setSuccessMessage('');
       setErrorMessage('Mnemonic cannot be empty.');
       return;
     }
 
-    if (!validateMnemonic(editableMnemonic.trim(), wordlist)) {
-      setSuccessMessage('');
+    if (!validateMnemonicBip39(editableMnemonic.trim())) {
       setErrorMessage('Invalid mnemonic. Please check your input.');
       return;
     }
 
+    // Copy to clipboard
+    navigator.clipboard.writeText(editableMnemonic.trim()).then(() => {
+      console.log('Mnemonic copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+
     setSavedMnemonic(editableMnemonic.trim());
     setErrorMessage('');
-    setSuccessMessage('Mnemonic saved successfully to local storage!');
-
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      setSuccessMessage('');
-    }, 3000);
+    setNotification({
+      type: 'success',
+      message: t('wallet.mnemonicCopied') || 'Copied! Mnemonic saved to local storage.'
+    });
   };
 
   const handleResetMnemonic = () => {
     if (window.confirm(t('wallet.resetConfirm'))) {
-      clearWalletData();
+      resetWallet();
       setEditableMnemonic('');
-      setSuccessMessage('');
       setErrorMessage('');
       setMnemonicCollapsed(false);
     }
@@ -94,6 +105,18 @@ const ECashWallet = () => {
 
   const toggleMnemonicCollapsed = () => {
     setMnemonicCollapsed(!mnemonicCollapsed);
+  };
+
+  const handleBackToDirectory = () => {
+    setSelectedFarm(null);
+    setEditableMnemonic('');
+    setErrorMessage('');
+  };
+
+  const handleShowImport = () => {
+    setShowImport(true);
+    setEditableMnemonic('');
+    setMnemonicCollapsed(false);
   };
 
   // Initialize editable mnemonic from saved mnemonic when component mounts
@@ -133,28 +156,48 @@ const ECashWallet = () => {
             ▼
           </span>
           <span className="mnemonic-title">
-            {t('fund.mnemonic')} <span className="mnemonic-subtitle">(12 words)</span>
+            {t('wallet.recoveryPhrase') || 'Recovery Phrase (Password)'}{' '}
+            <span className="mnemonic-subtitle">({t('wallet.wordsCount', { count: 12 }) || '12 words'})</span>
           </span>
         </div>
 
         {!mnemonicCollapsed && (
-          <textarea
-            id="mnemonic-textarea"
-            value={editableMnemonic}
-            onChange={(e) => setEditableMnemonic(e.target.value)}
-            placeholder={editableMnemonic.trim()
-              ? "Your 12-word mnemonic phrase"
-              : "Your generated mnemonic will appear here"}
-            rows="3"
-            className="mnemonic-input"
-          />
+          <>
+            {/* Security Warning */}
+            {editableMnemonic && (
+              <div className="mnemonic-warning">
+                <span className="warning-icon">⚠️</span>
+                <strong>{t('wallet.mnemonicWarning') || 'Write these 12 words on paper. This is your only way to recover your funds.'}</strong>
+              </div>
+            )}
+            
+            <textarea
+              id="mnemonic-textarea"
+              value={editableMnemonic}
+              onChange={(e) => setEditableMnemonic(e.target.value)}
+              placeholder={t('wallet.mnemonicPlaceholder') || 'Your recovery phrase will appear here...'}
+              rows="3"
+              className="mnemonic-input"
+            />
+          </>
         )}
 
         <div className="mnemonic-buttons">
-          {!editableMnemonic.trim() ? (
-            <button onClick={generateNewMnemonic} className="generate-btn">
-              {t('common.generate')}
-            </button>
+          {!editableMnemonic.trim() && !showImport ? (
+            <>
+              <button onClick={generateNewMnemonicHandler} className="generate-btn">
+                {t('common.generate')}
+              </button>
+              <button onClick={handleShowImport} className="import-btn">
+                {t('wallet.import') || 'Import Wallet'}
+              </button>
+            </>
+          ) : !editableMnemonic.trim() && showImport ? (
+            <>
+              <button onClick={() => setShowImport(false)} className="back-btn">
+                ← {t('common.cancel') || 'Cancel'}
+              </button>
+            </>
           ) : (
             <>
               <button onClick={handleConnectFromSaved}>
@@ -170,12 +213,6 @@ const ECashWallet = () => {
           )}
         </div>
       </div>
-
-      {successMessage && (
-        <div className="connection-success">
-          <p>{successMessage}</p>
-        </div>
-      )}
 
       {errorMessage && (
         <div className="connection-error">
