@@ -23,6 +23,27 @@ export const sanitizeInput = (input, context = 'general') => {
   // Trim whitespace
   sanitized = sanitized.trim();
 
+  // CRITICAL: For amounts, replace comma with dot for international support (EU uses comma)
+  // This must happen BEFORE validation so French users typing "10,50" get valid "10.50"
+  if (context === 'amount') {
+    // Replace comma with dot for decimal separator
+    sanitized = sanitized.replace(',', '.');
+    
+    // Remove any non-numeric characters except dot and minus
+    sanitized = sanitized.replace(/[^\d.-]/g, '');
+    
+    // Ensure only one dot
+    const parts = sanitized.split('.');
+    if (parts.length > 2) {
+      sanitized = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Ensure only one minus at the start
+    if (sanitized.indexOf('-') > 0) {
+      sanitized = sanitized.replace(/-/g, '');
+    }
+  }
+
   return sanitized;
 };
 

@@ -12,13 +12,15 @@ import {
   balanceBreakdownAtom,
   selectedFarmAtom
 } from '../atoms';
+import { Card, CardContent } from './UI';
+import TokenSendForm from './TokenSendForm';
 import QrCodeScanner from './QrCodeScanner';
 import XecFeeBalance from './XecFeeBalance';
 import { useTranslation } from '../hooks/useTranslation';
 import { useToken } from '../hooks/useToken';
 import { useFarms } from '../hooks/useFarms';
 import { sanitizeInput, isValidXECAddress, isValidAmount } from '../utils/validation';
-import { handleError, safeAsyncOperation } from '../utils/errorHandler';
+import { handleError } from '../utils/errorHandler';
 import '../styles/sendxec.css';
 
 const TokenSend = () => {
@@ -324,142 +326,59 @@ const TokenSend = () => {
 
   if (!walletConnected) {
     return (
-      <div className="send-tokens-container">
-        <h2>{t('token.send')}</h2>
-        <div className="send-tokens-empty">
-          <p>{t('token.walletNotConnected')}</p>
-        </div>
-      </div>
+      <Card className="send-tokens-container">
+        <CardContent>
+          <h2>{t('token.send')}</h2>
+          <div className="send-tokens-empty">
+            <p>{t('token.walletNotConnected')}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (!token) {
     return (
-      <div className="send-tokens-container">
-        <h2>{t('token.send')}</h2>
-        <div className="send-tokens-empty">
-          <h3>{t('token.noTokensAvailable')}</h3>
-          <p>{t('token.noTokensMessage')}</p>
-          <p>{t('token.tokensWillAppear')}</p>
-        </div>
-      </div>
+      <Card className="send-tokens-container">
+        <CardContent>
+          <h2>{t('token.send')}</h2>
+          <div className="send-tokens-empty">
+            <h3>{t('token.noTokensAvailable')}</h3>
+            <p>{t('token.noTokensMessage')}</p>
+            <p>{t('token.tokensWillAppear')}</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="send-tokens-container">
-      <h2>{t('token.send')}</h2>
+    <Card className="send-tokens-container">
+      <CardContent>
+        <h2>{t('token.send')}</h2>
 
-      {/* XEC Fee Balance Display */}
-      <XecFeeBalance />
+        {/* XEC Fee Balance Display */}
+        <XecFeeBalance />
 
-      <form onSubmit={handleSend}>
-        {/* Recipient Address */}
-        <div className="form-group">
-          <label htmlFor="recipient-address" className="form-label">
-            {t('token.recipient')}
-          </label>
-          <div className="form-input-group">
-            <input
-              id="recipient-address"
-              type="text"
-              value={sendForm.address}
-              onChange={(e) => handleInputChange('address', sanitizeInput(e.target.value, 'address'))}
-              placeholder={t('token.recipientPlaceholder')}
-              disabled={busy}
-              className="form-input"
-            />
-            <button
-              type="button"
-              onClick={() => setShowScanner(true)}
-              className="scan-button"
-              disabled={busy}
-            >
-              {t('common.qrScan')}
-            </button>
-          </div>
-          {sendForm.address && sendForm.address.length > 10 && !isValidXECAddress(sendForm.address) && (
-            <div className="error-text">
-              {t('token.invalidAddress')}
-            </div>
-          )}
-
-          {/* QR Scanner Modal */}
-          {showScanner && (
-            <div className="qr-scanner-modal">
-              <button
-                type="button"
-                disabled={busy}
-                className="close-scanner-button"
-                onClick={() => setShowScanner(false)}
-              >
-                {t('common.close')}
-              </button>
-              <QrCodeScanner onAddressDetected={handleAddressDetected} />
-            </div>
-          )}
-        </div>
-
-        {/* Amount Input */}
-        <div className="form-group">
-          <label htmlFor="token-amount" className="form-label">
-            {t('token.amount')}
-          </label>
-          <div className="form-input-group">
-            <input
-              id="token-amount"
-              type="number"
-              value={sendForm.amount}
-              onChange={(e) => handleInputChange('amount', sanitizeInput(e.target.value, 'amount'))}
-              placeholder={t('token.amountPlaceholder')}
-              step="any"
-              min="0"
-              disabled={busy}
-              className="form-input"
-            />
-            {token && (
-              <button
-                type="button"
-                onClick={setMaxAmount}
-                className="max-button"
-                disabled={busy}
-              >
-                {t('common.max')}
-              </button>
-            )}
-          </div>
-          {token && (
-            <div className="balance-info">
-              {t('token.available')}: {typeof token.balance === 'object' ? token.balance.display : token.balance} {token.ticker || token.symbol}
-            </div>
-          )}
-        </div>
-
-        {/* Send Button */}
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="send-button"
-            disabled={
-              busy ||
-              !sendForm.amount ||
-              !sendForm.address ||
-              !walletConnected ||
-              countdown > 0
-            }
-          >
-            {busy ?
-              t('token.sending') :
-              countdown > 0 ?
-                t('token.transactionCooldown', { countdown }) :
-                t('token.sendTokens')
-            }
-          </button>
-
-        </div>
-
-      </form>
-    </div>
+        {/* Refactored form component */}
+        <TokenSendForm
+          sendForm={sendForm}
+          onInputChange={handleInputChange}
+          onSubmit={handleSend}
+          onScanClick={() => setShowScanner(true)}
+          onMaxClick={setMaxAmount}
+          showScanner={showScanner}
+          onCloseScanner={() => setShowScanner(false)}
+          token={token}
+          busy={busy}
+          countdown={countdown}
+          walletConnected={walletConnected}
+          t={t}
+          QrCodeScanner={QrCodeScanner}
+          onAddressDetected={handleAddressDetected}
+        />
+      </CardContent>
+    </Card>
   );
 };
 
