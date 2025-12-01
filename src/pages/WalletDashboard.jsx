@@ -640,8 +640,7 @@ const WalletDashboard = () => {
                     Number(balance).toFixed(2)
                   )}
                 </div>
-                {price && !balanceLoading && (() => {
-                  const curr = currency.toLowerCase();
+                {price && typeof price.convert === 'function' && !balanceLoading && (() => {
                   const converted = price.convert(balanceBreakdown?.totalBalance || 0, currency);
                   return converted !== null ? (
                     <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
@@ -893,7 +892,7 @@ const WalletDashboard = () => {
                       <small style={{ display: 'block', marginTop: '8px', color: '#666', fontSize: '12px' }}>
                         {t('wallet.available') || 'Solde'}: {activeTokenBalance !== null ? activeTokenBalance : '...'} {selectedFarm.ticker}
                       </small>
-                      {!selectedFarm && price && sendForm.amount && (() => {
+                      {!selectedFarm && price && typeof price.convert === 'function' && sendForm.amount && (() => {
                         const converted = price.convert(Number(sendForm.amount || 0), currency);
                         return converted !== null ? (
                           <small style={{ display: 'block', marginTop: '4px', color: '#999', fontSize: '11px', fontStyle: 'italic' }}>
@@ -912,7 +911,7 @@ const WalletDashboard = () => {
                       fontSize: '13px',
                       color: '#666'
                     }}>
-                      💡 Frais de réseau estimés : ~5 XEC {price && (() => {
+                      💡 Frais de réseau estimés : ~5 XEC {price && typeof price.convert === 'function' && (() => {
                         const converted = price.convert(5, currency);
                         return converted !== null ? `(≈ ${converted.toFixed(4)} ${currency})` : '';
                       })()}

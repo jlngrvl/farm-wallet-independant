@@ -183,7 +183,7 @@ const FarmerInfoPage = () => {
               fontWeight: '600',
               borderRadius: '8px',
               border: 'none',
-              backgroundColor: 'var(--primary-color, #0074e4)',
+              backgroundColor: 'var(--accent-primary, #0074e4)',
               color: '#fff',
               cursor: 'pointer',
               marginBottom: '10px'

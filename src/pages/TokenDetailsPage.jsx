@@ -4,11 +4,12 @@ import { useAtom, useSetAtom } from 'jotai';
 import MobileLayout from '../components/Layout/MobileLayout';
 import BlockchainStatus from '../components/BlockchainStatus';
 import QrCodeScanner from '../components/QrCodeScanner';
+import { Card, CardContent, Button, PageLayout, Badge, Tabs, BalanceCard } from '../components/UI';
 import { useEcashWallet } from '../hooks/useEcashWallet';
 import { useFarms } from '../hooks/useFarms';
 import { useXecPrice } from '../hooks/useXecPrice';
 import { notificationAtom, currencyAtom } from '../atoms';
-// import supprimé : UI ne contient pas ces composants
+import '../styles/token-details.css';
 
 const TokenDetailsPage = () => {
   const { tokenId } = useParams();
@@ -385,7 +386,7 @@ const TokenDetailsPage = () => {
               label: 'eCash (XEC)',
               value: xecBalance.toFixed(2),
               subtitle: 'Frais réseau',
-              conversion: price?.convert(xecBalance, currency)
+              conversion: price && typeof price.convert === 'function' ? price.convert(xecBalance, currency) : null
             }}
             onRightClick={() => navigate('/settings')}
           />

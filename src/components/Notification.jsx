@@ -19,26 +19,19 @@ const Notification = () => {
 
   const { type, message } = notification;
 
-  // Type-based styling
+  // Type-based styling - Using CSS variables instead of Tailwind
   const typeStyles = {
-    success: 'bg-green-50 dark:bg-green-950/20 border-green-500/30 text-green-800 dark:text-green-300',
-    error: 'bg-red-50 dark:bg-red-950/20 border-red-500/30 text-red-800 dark:text-red-300',
-    warning: 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-500/30 text-yellow-800 dark:text-yellow-300',
-    info: 'bg-blue-50 dark:bg-blue-950/20 border-blue-500/30 text-blue-800 dark:text-blue-300'
+    success: 'notification-success',
+    error: 'notification-error',
+    warning: 'notification-warning',
+    info: 'notification-info'
   };
 
   return (
     <div 
-      className={`
-        fixed top-20 left-4 right-4 z-[1000]
-        px-4 py-3 rounded-lg border
-        flex items-center justify-between gap-3
-        shadow-lg backdrop-blur-sm
-        animate-slideDown
-        ${typeStyles[type] || typeStyles.info}
-      `}
+      className={`notification ${typeStyles[type] || typeStyles.info}`}
     >
-      <p className="flex-1 m-0 text-sm leading-relaxed">
+      <p className="notification-message">
         {type === 'success' && '✅ '}
         {type === 'error' && '❌ '}
         {type === 'warning' && '⚠️ '}
@@ -47,13 +40,7 @@ const Notification = () => {
       <button
         onClick={() => setNotification(null)}
         aria-label="Close notification"
-        className="
-          flex items-center justify-center
-          min-w-6 h-6 p-1
-          bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20
-          rounded transition-colors
-          text-lg leading-none
-        "
+        className="notification-close"
       >
         ×
       </button>

@@ -160,6 +160,16 @@ export const themeSetterAtom = atom(null, (get, set, newTheme) => {
 });
 themeSetterAtom.debugLabel = 'themeSetterAtom';
 
+// Blockchain status atom - shared global state for connection status
+export const blockchainStatusAtom = atom({
+  connected: false,
+  blockHeight: 0,
+  checking: true,
+  error: null,
+  lastChecked: null
+});
+blockchainStatusAtom.debugLabel = 'blockchainStatusAtom';
+
 // Mnemonic UI state management with localStorage persistence
 const getInitialMnemonicCollapsed = () => {
   if (typeof window !== 'undefined') {

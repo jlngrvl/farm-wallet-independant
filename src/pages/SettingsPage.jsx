@@ -5,11 +5,12 @@ import MobileLayout from '../components/Layout/MobileLayout';
 import WalletDetails from '../components/WalletDetails';
 import SendXEC from '../components/SendXEC';
 import BlockchainStatus from '../components/BlockchainStatus';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useTranslation } from '../hooks/useTranslation';
 import { useEcashWallet } from '../hooks/useEcashWallet';
 import { useXecPrice } from '../hooks/useXecPrice';
 import { walletConnectedAtom, walletAtom, notificationAtom, currencyAtom, localeAtom } from '../atoms';
-import '../styles/fund.css';
+import '../styles/settings.css';
 
 const SettingsPage = () => {
   const { t, changeLanguage } = useTranslation();
@@ -137,11 +138,11 @@ const SettingsPage = () => {
           }}>
             💰 {t('settings.marketPrice')}
           </div>
-          {price ? (
+          {price && typeof price.convert === 'function' ? (
             <div style={{
               fontSize: '1.1rem',
               fontWeight: '700',
-              color: 'var(--primary-color, #0074e4)'
+              color: 'var(--accent-primary)'
             }}>
               1 XEC = {price.convert(1, currency)?.toFixed(6) || '...'} {currency}
             </div>
@@ -149,7 +150,7 @@ const SettingsPage = () => {
             <div style={{
               fontSize: '1.1rem',
               fontWeight: '700',
-              color: 'var(--text-secondary, #999)'
+              color: 'var(--text-secondary)'
             }}>
               {t('common.loading')}...
             </div>
@@ -270,7 +271,7 @@ const SettingsPage = () => {
                       `${Number(balance).toFixed(2)} XEC`
                     )}
                   </div>
-                  {price && !balanceLoading && (() => {
+                  {price && typeof price.convert === 'function' && !balanceLoading && (() => {
                     const converted = price.convert(Number(balance), currency);
                     return converted !== null ? (
                       <div style={{
@@ -366,8 +367,8 @@ const SettingsPage = () => {
                         display: 'inline-block',
                         width: '40px',
                         height: '40px',
-                        border: '4px solid #f3f3f3',
-                        borderTop: '4px solid var(--primary-color, #0074c2)',
+                        border: '4px solid var(--bg-secondary)',
+                        borderTop: '4px solid var(--accent-primary)',
                         borderRadius: '50%',
                         animation: 'spin 1s linear infinite',
                         marginBottom: '16px'
@@ -395,7 +396,11 @@ const SettingsPage = () => {
               <span className="toggle-icon">{showEmptyWallet ? '▼' : '▶'}</span>
               {t('xec.title')}
             </h3>
-            {showEmptyWallet && <SendXEC />}
+            {showEmptyWallet && (
+              <ErrorBoundary>
+                <SendXEC />
+              </ErrorBoundary>
+            )}
           </div>
 
           {/* Phrase de Récupération - collapsible */}
@@ -408,7 +413,11 @@ const SettingsPage = () => {
               <span className="toggle-icon">{showWalletInfo ? '▼' : '▶'}</span>
               {t('settings.walletInfo')}
             </h3>
-            {showWalletInfo && <WalletDetails />}
+            {showWalletInfo && (
+              <ErrorBoundary>
+                <WalletDetails />
+              </ErrorBoundary>
+            )}
           </div>
         </div>
 
@@ -443,7 +452,9 @@ const SettingsPage = () => {
           
           {/* Statut Blockchain */}
           <div style={{ marginBottom: '16px' }}>
-            <BlockchainStatus />
+            <ErrorBoundary>
+              <BlockchainStatus />
+            </ErrorBoundary>
           </div>
           
           {/* Version */}

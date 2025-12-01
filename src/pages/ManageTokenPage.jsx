@@ -8,9 +8,8 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useFarms } from '../hooks/useFarms';
 import { useXecPrice } from '../hooks/useXecPrice';
 import { notificationAtom, currencyAtom } from '../atoms';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-// import supprimé : UI ne contient pas ces composants
+import { Card, CardContent, Button, PageLayout, Stack, PageHeader } from '../components/UI';
+import '../styles/token-details.css';
 
 const ManageTokenPage = () => {
   const navigate = useNavigate();
@@ -220,7 +219,7 @@ const ManageTokenPage = () => {
             >
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">💱 Valeur estimée</div>
               <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                {price?.convert(xecBalance, currency) || '...'}
+                {price && typeof price.convert === 'function' ? price.convert(xecBalance, currency) : '...'}
               </div>
             </div>
           </div>
@@ -335,7 +334,7 @@ const ManageTokenPage = () => {
                   <div className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase ${
                     token.isActive 
                       ? 'bg-green-500 text-white' 
-                      : 'bg-red-500 text-white'
+                      : 'bg-gray-400 text-white'
                   }`}>
                     {token.isActive ? '✓ ACTIF' : '⚠ INACTIF'}
                   </div>

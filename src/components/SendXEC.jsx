@@ -408,7 +408,7 @@ const SendXEC = () => {
             }}>
               <div style={{ fontWeight: '600', marginBottom: '4px' }}>
                 📊 Disponible: {balanceBreakdown.spendableBalance?.toFixed(2) || 0} XEC
-                {price && (() => {
+                {price && typeof price.convert === 'function' && (() => {
                   const converted = price.convert(balanceBreakdown.spendableBalance || 0, currency);
                   return converted !== null ? ` (≈ ${converted.toFixed(2)} ${currency})` : '';
                 })()}

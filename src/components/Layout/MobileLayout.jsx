@@ -3,6 +3,7 @@ import { walletConnectedAtom } from '../../atoms';
 import TopBar from './TopBar';
 import BottomNavigation from './BottomNavigation';
 import DisconnectedView from './DisconnectedView';
+import BlockchainStatus from '../BlockchainStatus';
 import PropTypes from 'prop-types';
 import '../../styles/layout.css';
 
@@ -24,6 +25,10 @@ const MobileLayout = ({ title, children }) => {
       </div>
 
       <BottomNavigation />
+      
+      <div className="blockchain-footer">
+        <BlockchainStatus />
+      </div>
     </div>
   );
 };

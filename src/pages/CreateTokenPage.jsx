@@ -22,7 +22,7 @@ const CreateTokenPage = () => {
   // Hooks
   const { wallet: walletInstance } = useEcashWallet();
   const { balance } = useEcashBalance();
-  const { price: xecPrice } = useXecPrice();
+  const xecPrice = useXecPrice();
   const isAdmin = useAdmin();
   
   // Form state
@@ -153,7 +153,9 @@ const CreateTokenPage = () => {
 
   // Calculate estimated cost in EUR
   const estimatedCostXec = 25;
-  const estimatedCostEur = xecPrice ? (estimatedCostXec * xecPrice).toFixed(4) : '...';
+  const estimatedCostEur = xecPrice && typeof xecPrice.convert === 'function' 
+    ? xecPrice.convert(estimatedCostXec, 'EUR').toFixed(4) 
+    : '...';
 
   // Wallet not connected view
   if (!walletConnected || !wallet) {

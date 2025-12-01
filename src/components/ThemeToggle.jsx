@@ -16,26 +16,15 @@ const ThemeToggle = ({ compact = false, className = '' }) => {
   return (
     <button
       onClick={toggleTheme}
-      className={`
-        inline-flex items-center justify-center
-        w-10 h-10 rounded-full
-        border-2 border-gray-300 dark:border-gray-600
-        bg-white dark:bg-gray-800
-        text-gray-600 dark:text-gray-300
-        hover:bg-gray-100 dark:hover:bg-gray-700
-        hover:border-blue-500 dark:hover:border-blue-400
-        hover:text-blue-600 dark:hover:text-blue-400
-        hover:shadow-lg hover:shadow-blue-500/30
-        hover:scale-110
-        active:scale-95
-        transition-all duration-300
-        ${compact ? 'w-8 h-8' : ''}
-        ${className}
-      `}
+      className="theme-toggle"
+      style={{
+        width: compact ? '2rem' : '2.5rem',
+        height: compact ? '2rem' : '2.5rem'
+      }}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
       title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
-      <div className="transition-transform duration-500 hover:rotate-180">
+      <div style={{ transition: 'transform 500ms ease' }}>
         {isDark ? (
           // Sun icon for switching to light theme
           <svg

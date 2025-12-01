@@ -13,12 +13,15 @@ import FavoritesPage from './pages/FavoritesPage';
 import FarmerInfoPage from './pages/FarmerInfoPage';
 import FaqPage from './pages/FaqPage';
 import CreateTokenPage from './pages/CreateTokenPage';
+import ManageTokenPage from './pages/ManageTokenPage';
 
 // Layout & Components
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminGateRoute from './components/AdminGateRoute';
 import ThemeProvider from './components/ThemeProvider';
 import Notification from './components/Notification';
 import LoadingScreen from './components/LoadingScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Hooks
 import { useEcashWallet } from './hooks/useEcashWallet';
@@ -31,6 +34,7 @@ import './i18n';
 import './App.css';
 import './styles/themes.css';
 import './styles/layout.css';
+import './styles/components.css';
 
 function App() {
   const [locale] = useAtom(localeAtom);
@@ -69,89 +73,111 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="app-container bg-red-500">
-          <Notification />
-          <Routes>
-            {/* ========================================
-                ROUTES PUBLIQUES (Sans wallet requis)
-                ======================================== */}
-            
-            {/* Annuaire - Point d'entrée public */}
-            <Route path="/" element={<DirectoryPage />} />
-            
-            {/* Espace Producteur - DOIT Être PUBLIC */}
-            <Route path="/farmer-info" element={<FarmerInfoPage />} />
-            
-            {/* FAQ - Page d'aide publique */}
-            <Route path="/faq" element={<FaqPage />} />
-            
-            {/* ========================================
-                ROUTES PRIVÉES (Wallet requis)
-                ======================================== */}
-            
-            {/* Dashboard personnel (Wallet, ferme optionnelle) */}
-            <Route 
-              path="/wallet" 
-              element={
-                <ProtectedRoute requireFarm={false}>
-                  <WalletDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Envoyer des tokens */}
-            <Route 
-              path="/send" 
-              element={
-                <ProtectedRoute requireFarm={false}>
-                  <SendPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Fermes favorites */}
-            <Route 
-              path="/favorites" 
-              element={
-                <ProtectedRoute requireFarm={false}>
-                  <FavoritesPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Paramètres */}
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute requireFarm={false}>
-                  <SettingsPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Création de jetons */}
-            <Route 
-              path="/create-token" 
-              element={
-                <ProtectedRoute requireFarm={false}>
-                  <CreateTokenPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* ========================================
-                REDIRECTIONS & COMPATIBILITÉ
-                ======================================== */}
-            
-            {/* Anciennes routes */}
-            <Route path="/home" element={<Navigate to="/wallet" replace />} />
-            <Route path="/directory" element={<Navigate to="/" replace />} />
-            <Route path="/fund" element={<Navigate to="/settings" replace />} />
-            
-            {/* Catch-all - Redirection vers annuaire */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        <ErrorBoundary>
+          <div className="app-container">
+            <Notification />
+            <Routes>
+              {/* ========================================
+                  ROUTES PUBLIQUES (Sans wallet requis)
+                  ======================================== */}
+              
+              {/* Annuaire - Point d'entrée public */}
+              <Route path="/" element={<DirectoryPage />} />
+              
+              {/* Espace Producteur - DOIT Être PUBLIC */}
+              <Route path="/farmer-info" element={<FarmerInfoPage />} />
+              
+              {/* FAQ - Page d'aide publique */}
+              <Route path="/faq" element={<FaqPage />} />
+              
+              {/* ========================================
+                  ROUTES PRIVÉES (Wallet requis)
+                  ======================================== */}
+              
+              {/* Dashboard personnel (Wallet, ferme optionnelle) */}
+              <Route 
+                path="/wallet" 
+                element={
+                  <ProtectedRoute requireFarm={false}>
+                    <ErrorBoundary>
+                      <WalletDashboard />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Envoyer des tokens */}
+              <Route 
+                path="/send" 
+                element={
+                  <ProtectedRoute requireFarm={false}>
+                    <ErrorBoundary>
+                      <SendPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Fermes favorites */}
+              <Route 
+                path="/favorites" 
+                element={
+                  <ProtectedRoute requireFarm={false}>
+                    <ErrorBoundary>
+                      <FavoritesPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Paramètres */}
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute requireFarm={false}>
+                    <ErrorBoundary>
+                      <SettingsPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Création de jetons */}
+              <Route 
+                path="/create-token" 
+                element={
+                  <ProtectedRoute requireFarm={false}>
+                    <ErrorBoundary>
+                      <CreateTokenPage />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Gestion de jetons - Nécessite au minimum 1 mint baton */}
+              <Route 
+                path="/manage-token" 
+                element={
+                  <AdminGateRoute fallbackRoute="/create-token">
+                    <ErrorBoundary>
+                      <ManageTokenPage />
+                    </ErrorBoundary>
+                  </AdminGateRoute>
+                }
+              />              {/* ========================================
+                  REDIRECTIONS & COMPATIBILITÉ
+                  ======================================== */}
+              
+              {/* Anciennes routes */}
+              <Route path="/home" element={<Navigate to="/wallet" replace />} />
+              <Route path="/directory" element={<Navigate to="/" replace />} />
+              <Route path="/fund" element={<Navigate to="/settings" replace />} />
+              
+              {/* Catch-all - Redirection vers annuaire */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </ErrorBoundary>
       </Router>
     </ThemeProvider>
   );

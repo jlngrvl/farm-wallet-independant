@@ -66,8 +66,20 @@ export const useEcashWallet = () => {
         throw new Error('Wallet created but address is undefined');
       }
       
-      // Test connection by getting balance
-      await walletInstance.getBalance();
+      // Test connection by getting balance (with timeout to avoid blocking)
+      try {
+        console.log('⏱️ Tentative test balance avec timeout 15s...');
+        await Promise.race([
+          walletInstance.getBalance(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Balance test timeout')), 15000)
+          )
+        ]);
+        console.log('✅ Balance test réussi');
+      } catch (balanceError) {
+        console.warn('⚠️ Balance test échoué (non-bloquant):', balanceError.message);
+        // Ne pas rejeter - continuer quand même
+      }
       
       setWallet(walletInstance);
       setWalletConnected(true);

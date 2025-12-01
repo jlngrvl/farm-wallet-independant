@@ -9,7 +9,7 @@
  * - https://www.npmjs.com/package/ecash-lib
  */
 
-import { ChronikClient } from 'chronik-client';
+import chronikManager from './chronikClient';
 import {
   Ecc,
   Script,
@@ -59,13 +59,6 @@ function decodeCashAddress(addressString) {
   return hash;
 }
 
-// Chronik nodes available (official API)
-const CHRONIK_URLS = [
-  'https://chronik.be.cash/xec',
-  'https://chronik.pay2stay.com/xec',
-  'https://chronik.fabien.cash'
-];
-
 /**
  * eCash Wallet Class
  * Hybrid implementation: ecashaddrjs for addresses, ecash-lib for transactions
@@ -74,7 +67,15 @@ export class EcashWallet {
   constructor(mnemonic) {
     console.log('🏗️ EcashWallet constructor called');
     this.mnemonic = mnemonic;
-    this.chronik = new ChronikClient('https://chronik-native2.fabien.cash');
+    
+    // Utiliser le gestionnaire Chronik centralisé (singleton)
+    this.chronikManager = chronikManager;
+    
+    // Cache simple pour réduire les appels API
+    this.balanceCache = null;
+    this.balanceCacheTime = 0;
+    this.tokenInfoCache = new Map(); // Map<tokenId, {info, timestamp}>
+    this.CACHE_TTL = 10000; // 10 secondes
     
     // 1. Dérivation (Standard eCash)
     const seed = bip39.mnemonicToSeedSync(mnemonic);
@@ -120,15 +121,27 @@ export class EcashWallet {
   /**
    * Get XEC balance and detailed UTXO info
    */
-  async getBalance() {
+  async getBalance(forceRefresh = false) {
     try {
-      // Wait for Chronik to be initialized
-      await this.chronikInitPromise;
+      const now = Date.now();
+      
+      // Return cached balance if available and fresh
+      if (
+        !forceRefresh &&
+        this.balanceCache &&
+        now - this.balanceCacheTime < this.CACHE_TTL
+      ) {
+        console.log('💰 Using cached balance (age:', Math.round((now - this.balanceCacheTime) / 1000), 's)');
+        return this.balanceCache;
+      }
+      
+      // Get Chronik client from manager
+      const chronik = await this.chronikManager.getClient();
       
       console.log('💰 Fetching UTXOs...');
       
       // Query UTXOs from Chronik
-      const utxos = await this.chronik.script('p2pkh', toHex(this.pkh)).utxos();
+      const utxos = await chronik.script('p2pkh', toHex(this.pkh)).utxos();
       
       // DEBUG: Log raw structure with BigInt converted to string
       console.log('🔍 RAW UTXOS:', JSON.stringify(utxos, (k, v) => 
@@ -195,6 +208,10 @@ export class EcashWallet {
         tokenUtxos: tokenUtxos.length
       });
       
+      // Update cache
+      this.balanceCache = result;
+      this.balanceCacheTime = now;
+      
       return result;
     } catch (error) {
       console.error('❌ Error getting balance:', error);
@@ -214,7 +231,9 @@ export class EcashWallet {
    */
   async getTokenBalance(tokenId) {
     try {
-      const scriptUtxos = await this.chronik.script('p2pkh', toHex(this.pkh)).utxos();
+      const chronik = await this.chronikManager.getClient();
+      
+      const scriptUtxos = await chronik.script('p2pkh', toHex(this.pkh)).utxos();
       
       let tokenAmount = 0n;
       const tokenUtxos = [];
@@ -253,19 +272,40 @@ export class EcashWallet {
   /**
    * Get token info (genesis info)
    */
-  async getTokenInfo(tokenId) {
+  async getTokenInfo(tokenId, forceRefresh = false) {
     try {
-      // Wait for Chronik to be initialized
-      await this.chronikInitPromise;
+      const now = Date.now();
       
-      const tokenInfo = await this.chronik.token(tokenId);
-      return {
+      // Check cache first
+      const cached = this.tokenInfoCache.get(tokenId);
+      if (
+        !forceRefresh &&
+        cached &&
+        now - cached.timestamp < this.CACHE_TTL
+      ) {
+        console.log('🪙 Using cached token info for', tokenId.substring(0, 8), '... (age:', Math.round((now - cached.timestamp) / 1000), 's)');
+        return cached.info;
+      }
+      
+      // Get Chronik client from manager
+      const chronik = await this.chronikManager.getClient();
+      
+      const tokenInfo = await chronik.token(tokenId);
+      const result = {
         tokenId: tokenId,
         tokenType: tokenInfo.tokenType,
         genesisInfo: tokenInfo.genesisInfo,
         timeFirstSeen: tokenInfo.timeFirstSeen,
         block: tokenInfo.block,
       };
+      
+      // Update cache
+      this.tokenInfoCache.set(tokenId, {
+        info: result,
+        timestamp: now
+      });
+      
+      return result;
     } catch (error) {
       console.error('❌ Error getting token info:', error);
       throw new Error(`Failed to get token info: ${error.message}`);
@@ -277,6 +317,8 @@ export class EcashWallet {
    */
   async sendXec(toAddress, amountXec) {
     try {
+      const chronik = await this.chronikManager.getClient();
+      
       console.log(`🚀 REÇU Brut : "${amountXec}" (Type: ${typeof amountXec})`);
 
       // 1. NETTOYAGE UNIVERSEL (Sanitization)
@@ -361,7 +403,7 @@ export class EcashWallet {
       const tx = txBuild.sign({ feePerKb: 1000n, dustSats: DUST_LIMIT });
       
       console.log("📡 Diffusion...");
-      const response = await this.chronik.broadcastTx(tx.toHex());
+      const response = await chronik.broadcastTx(tx.toHex());
       console.log("✅ SUCCÈS TXID:", response.txid);
       
       return { txid: response.txid };
@@ -438,6 +480,8 @@ export class EcashWallet {
    */
   async sendToken(tokenId, toAddress, amountToken, decimals = 0, protocol = 'SLP') {
     try {
+      await this.chronikInitPromise;
+      
       const safeProtocol = (protocol && protocol.toUpperCase() === 'ALP') ? 'ALP' : 'SLP';
       console.log(`🚀 Envoi ${safeProtocol} ${tokenId}: ${amountToken} (Dec: ${decimals})`);
 
@@ -537,7 +581,7 @@ export class EcashWallet {
       const tx = txBuild.sign({ feePerKb: 1000n, dustSats: 546n });
       
       console.log("📡 Diffusion Token Tx...");
-      const response = await this.chronik.broadcastTx(tx.toHex());
+      const response = await chronik.broadcastTx(tx.toHex());
       console.log("✅ SUCCÈS TXID:", response.txid);
       return { txid: response.txid };
 
@@ -576,6 +620,8 @@ export class EcashWallet {
    */
   async createToken(params) {
     try {
+      const chronik = await this.chronikManager.getClient();
+      
       const { name, ticker, url, decimals, quantity, isFixedSupply = false } = params;
       console.log(`🚀 Création Jeton: ${name} (${isFixedSupply ? 'Offre Fixe' : 'Offre Variable'})`);
 
@@ -640,7 +686,7 @@ export class EcashWallet {
       const txBuild = new TxBuilder({ inputs, outputs });
       const tx = txBuild.sign({ feePerKb: 1000n, dustSats: DUST_LIMIT });
       
-      const response = await this.chronik.broadcastTx(tx.toHex());
+      const response = await chronik.broadcastTx(tx.toHex());
       console.log("🎉 Token Créé ! TXID:", response.txid);
       return { 
         txid: response.txid, 
@@ -660,7 +706,9 @@ export class EcashWallet {
    */
   async listETokens() {
     try {
-      const scriptUtxos = await this.chronik.script('p2pkh', toHex(this.pkh)).utxos();
+      const chronik = await this.chronikManager.getClient();
+      
+      const scriptUtxos = await chronik.script('p2pkh', toHex(this.pkh)).utxos();
       
       const tokenMap = new Map();
       
@@ -700,6 +748,33 @@ export class EcashWallet {
     } catch (error) {
       console.error('❌ Error listing tokens:', error);
       throw new Error(`Failed to list tokens: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get all token IDs for which this wallet has mint batons
+   * Mint batons are UTXOs with baton category flag
+   * @returns {Promise<string[]>} Array of tokenIds where user has mint authority
+   */
+  async getMintBatons() {
+    try {
+      const chronik = await this.chronikManager.getClient();
+      
+      const scriptUtxos = await chronik.script('p2pkh', toHex(this.pkh)).utxos();
+      const mintBatonTokenIds = [];
+      
+      for (const utxo of scriptUtxos.utxos) {
+        // Check if this UTXO has the mint baton flag
+        if (utxo.token && utxo.token.isMintBaton === true) {
+          mintBatonTokenIds.push(utxo.token.tokenId);
+        }
+      }
+      
+      console.log(`🔑 Mint batons trouvés (${mintBatonTokenIds.length}):`, mintBatonTokenIds);
+      return mintBatonTokenIds;
+    } catch (error) {
+      console.error('❌ Error fetching mint batons:', error);
+      throw new Error(`Failed to fetch mint batons: ${error.message}`);
     }
   }
 }

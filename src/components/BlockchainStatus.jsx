@@ -3,45 +3,35 @@
  * Shows the status of the eCash blockchain connection
  */
 
-import { useState, useEffect } from 'react';
-import { ChronikClient, ConnectionStrategy } from 'chronik-client';
+import { useEffect } from 'react';
+import { useAtom } from 'jotai';
+import { blockchainStatusAtom } from '../atoms';
+import chronikManager from '../services/chronikClient';
 import { useTranslation } from '../hooks/useTranslation';
 import '../styles/blockchain-status.css';
 
 const BlockchainStatus = () => {
   const { t } = useTranslation();
-  const [status, setStatus] = useState({
-    connected: false,
-    blockHeight: 0,
-    checking: true,
-    error: null
-  });
+  const [status, setStatus] = useAtom(blockchainStatusAtom);
 
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const chronik = await ChronikClient.useStrategy(
-          ConnectionStrategy.ClosestFirst,
-          [
-            'https://chronik.be.cash/xec',
-            'https://chronik.pay2stay.com/xec',
-            'https://chronik.fabien.cash'
-          ]
-        );
-        const blockchainInfo = await chronik.blockchainInfo();
-        
+        const result = await chronikManager.checkConnection();
         setStatus({
-          connected: true,
-          blockHeight: blockchainInfo.tipHeight,
+          connected: result.connected,
+          blockHeight: result.blockHeight,
           checking: false,
-          error: null
+          error: result.error,
+          lastChecked: Date.now()
         });
       } catch (error) {
         setStatus({
           connected: false,
           blockHeight: 0,
           checking: false,
-          error: error.message
+          error: error.message,
+          lastChecked: Date.now()
         });
       }
     };
@@ -52,7 +42,7 @@ const BlockchainStatus = () => {
     const interval = setInterval(checkConnection, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [setStatus]);
 
   if (status.checking) {
     return (
