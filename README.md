@@ -7,72 +7,133 @@ A beautiful, lightweight wallet for **eCash (XEC)** and farm tokens, built with 
 [![React](https://img.shields.io/badge/React-19.1-blue.svg)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6.4-purple.svg)](https://vitejs.dev/)
 [![CSS Custom](https://img.shields.io/badge/CSS-Custom-green.svg)](./docs/CONFORMITE_CAHIER_DES_CHARGES.md)
+[![Playwright](https://img.shields.io/badge/Playwright-1.55-green.svg)](https://playwright.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+**Recent Updates:**
+- ✅ Dashboard v2 with farm selector & responsive design
+- ✅ Real-time balance updates via Chronik WebSocket
+- ✅ Complete E2E test infrastructure (Playwright)
+- ✅ Enhanced TokenSend component with validation UI
 
 ---
 
 ## 📚 Documentation
 
-**Nouveau sur le projet ?** Commencez ici :
-- 📖 **[Quick Start Guide](./QUICK_START.md)** - Démarrage rapide (10 min)
-- 📊 **[Project Status](./PROJECT_STATUS.md)** - État du projet complet
-- 🎯 **[Priorities](./PRIORITIES.md)** - Tâches urgentes et priorités
-- 🗺️ **[Roadmap](./ROADMAP.md)** - Vision et planning long terme
-- 📚 **[Documentation Index](./DOCUMENTATION_INDEX.md)** - Navigation complète
+**🚀 Getting Started:**
+- 📖 **[Quick Start Guide](./QUICK_START.md)** - Setup in 10 minutes
+- 📊 **[Project Status](./PROJECT_STATUS.md)** - Complete project overview
+- 🎯 **[Priorities](./PRIORITIES.md)** - Current tasks & roadmap
+- 🗺️ **[Roadmap](./ROADMAP.md)** - Long-term vision
+- 📚 **[Documentation Index](./DOCUMENTATION_INDEX.md)** - Full navigation
 
-**Documentation technique** :
-- 🏗️ [Architecture Wallet](./docs/WALLET_ARCHITECTURE.md)
-- ✅ [Conformité Cahier des Charges](./docs/CONFORMITE_CAHIER_DES_CHARGES.md)
-- 🎨 [Dashboard Redesign](./docs/WALLET_DASHBOARD_REDESIGN.md)
+**🏗️ Technical Documentation:**
+- 🏛️ [Wallet Architecture](./docs/WALLET_ARCHITECTURE.md) - Core wallet design
+- ✅ [CSS Custom Conformity](./docs/CONFORMITE_CAHIER_DES_CHARGES.md) - Zero framework architecture
+- 🎨 [Dashboard v2 Design](./docs/WALLET_DASHBOARD_REDESIGN.md) - UI/UX specifications
+- 🔌 [Chronik WebSocket](./docs/CHRONIK_WEBSOCKET.md) - Real-time updates
+- 🧩 [Component Guide](./docs/COMPONENTS.md) - Complete component reference
+- 🧪 [Testing Guide](./tests/README.md) - E2E testing with Playwright
 
 ---
 
 ## ✨ Features
 
-- 🪙 **Multi-token support** - XEC + farm tokens
-- 🎨 **Custom UI Components** - Zero dependencies (no Tailwind, no Shadcn, no Bootstrap)
+### Core Wallet
+- 🪙 **Multi-token support** - XEC + farm tokens with dynamic filtering
+- 🏪 **Farm selector** - Filter tokens by farm with persistent selection
+- 💰 **Smart balance display** - 70% XEC / 30% USD split with real-time rates
+- 📷 **QR codes** - Scan & generate QR codes for payments
+- 🔐 **Secure** - Non-custodial, keys stored locally
+
+### User Experience
+- 🎨 **Custom UI Components** - Zero frameworks (no Tailwind, no Shadcn, no Bootstrap)
 - 🌓 **Dark mode** - CSS variables-based theme system
 - 🌍 **Multi-language** - French & English support (i18next)
-- 📱 **Mobile-first** - Responsive design optimized for all devices
-- 📷 **QR codes** - Scan & generate QR codes for payments
-- ⚡ **Real-time updates** - WebSocket integration with Chronik
-- 🔐 **Secure** - Non-custodial, keys stored locally
+- 📱 **Mobile-first** - Responsive design with breakpoints (400/600/640/768px)
+- ✅ **Real-time validation** - Visual feedback (✓/❌) in forms
+- 🔄 **Comma support** - EU-friendly number input (10,50 → 10.50)
+
+### Performance & Quality
+- ⚡ **Real-time updates** - WebSocket integration with Chronik (instant balance refresh)
 - 🚀 **Fast** - Built with Vite, minimal CSS overhead
+- 🧪 **E2E tested** - 40+ Playwright tests for reliability
+- 🟢 **Connection status** - Visual WebSocket indicator with auto-reconnect
 
 ## 🏗️ Architecture
 
-**Architecture moderne sans frameworks UI** :
-- ✅ **CSS Custom** - Variables CSS, design system cohérent
-- ✅ **Composants Atomiques** - `<Card>`, `<Button>`, `<Stack>`, etc. (src/components/UI.jsx)
-- ✅ **Jotai** - State management atomique et performant
-- ✅ **React Router** - Navigation déclarative
-- ✅ **Mobile First** - Breakpoints: 400px, 600px, 640px, 768px
-- ✅ **Performance** - Pas de build PostCSS/Tailwind, CSS pur et rapide
+### Frontend Stack
+- ✅ **React 19.1** - Latest stable with concurrent features
+- ✅ **Vite 6.4** - Lightning fast HMR & build
+- ✅ **CSS Custom** - Zero UI frameworks, pure CSS variables
+- ✅ **Jotai 2.13** - Atomic state management
+- ✅ **React Router 7** - Modern declarative routing
+- ✅ **i18next** - Multi-language support (FR/EN)
 
-📚 **[Voir la documentation complète](./docs/CONFORMITE_CAHIER_DES_CHARGES.md)**
+### Blockchain Stack
+- ✅ **chronik-client 2.1** - eCash blockchain indexer
+- ✅ **ecash-lib 4.5** - Transaction construction & signing
+- ✅ **ecashaddrjs** - Address encoding/decoding
+- ✅ **@scure/bip39** - Mnemonic generation
+- ✅ **@scure/bip32** - HD wallet derivation
 
-## Quick Start
+### Design System (CSS Custom)
+
+**Zero UI frameworks:**
+- ❌ No Tailwind CSS
+- ❌ No Shadcn/UI
+- ❌ No Bootstrap
+- ✅ Pure CSS with CSS variables
+- ✅ Atomic components in `src/components/UI.jsx`
+
+**Atomic Components:**
+```jsx
+import { Card, CardContent, Button, Stack } from './components/UI';
+
+<Card>
+  <CardContent>
+    <Stack direction="column" gap="1rem">
+      <Button variant="primary">Send</Button>
+    </Stack>
+  </CardContent>
+</Card>
+```
+
+**CSS Variables** (`src/styles/themes.css`):
+- `--bg-primary`, `--bg-secondary`, `--bg-tertiary`
+- `--text-primary`, `--text-secondary`
+- `--accent-primary` (#0074e4 - eCash blue)
+- `--success-color`, `--error-color`, `--warning-color`
+
+**Responsive Breakpoints:**
+- 400px - Very small mobile
+- 600px - Mobile
+- 640px - Small tablet
+- 768px - Tablet
+
+📚 **[Full architecture documentation →](./docs/CONFORMITE_CAHIER_DES_CHARGES.md)**
+
+## 🚀 Quick Start
 
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/zh/farm-wallet.git
-cd farm-wallet
+git clone https://github.com/jlngrvl/farm-wallet-independant.git
+cd farm-wallet-independant
 npm install
 ```
 
-### 2. Configure Your Token
-Copy the environment example file and set your token ID:
+### 2. Configure Environment (Optional)
+
+Copy the environment example:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set your token ID:
-
-```bash
-VITE_TOKEN_ID=your_token_id_here
-```
+Optional configurations in `.env`:
+- `REACT_APP_ADMIN_HASH` - SHA-256 hash for super admin access
+- Other settings use sensible defaults
 
 ### 3. Start Development
 
@@ -80,38 +141,67 @@ VITE_TOKEN_ID=your_token_id_here
 npm run dev
 ```
 
-Your wallet will be available at `http://localhost:5173`
+✅ Wallet available at `http://localhost:5173`
 
-## Environment Configuration
-
-### Setting VITE_TOKEN_ID
-
-The `VITE_TOKEN_ID` is the most important configuration. This determines which token your wallet will handle.
-
-1. **Find your token ID**: This is a long string (usually 64 characters) that uniquely identifies your token on the eCash network
-2. **Add it to .env**: Replace `your_token_id_here` with your actual token ID
-3. **Restart the dev server**: Environment changes require a restart
-
-Example:
+### 4. Run Tests (Optional)
 
 ```bash
-VITE_TOKEN_ID=4bd147fc5d5ff26249a9299c46b80920c0b81f59a60895a2ca91a5a6fb9d8da1
+# Install browsers first (once)
+npx playwright install
+
+# Run tests with UI
+npm run test:ui
 ```
+
+### 5. Build for Production
+
+```bash
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+📚 **New to the project?** Start with **[Quick Start Guide](./QUICK_START.md)** (10 min read)
 
 ## 🧪 Testing
 
 ### E2E Tests (Playwright)
 
+**Test Suites** (40+ scenarios):
+- ✅ Wallet connection flow (5 tests)
+- ✅ Farm selection & filtering (5 tests)
+- ✅ Token send validation (8 tests)
+- ✅ QR scanner & display (8 tests)
+- ✅ Send XEC flow (15 tests)
+
 ```bash
 # Run all tests
-npm run test
+npm test
 
-# Run tests in headed mode
-npx playwright test --headed
+# Interactive UI mode (recommended)
+npm run test:ui
 
-# Run specific test
-npx playwright test tests/sendXEC.spec.js
+# Run tests in headed mode (watch browser)
+npm run test:headed
+
+# Debug mode with Playwright Inspector
+npm run test:debug
+
+# View HTML report
+npm run test:report
+
+# Run specific test file
+npx playwright test tests/wallet-connection.spec.js
 ```
+
+**Test Configuration:**
+- 5 browsers: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
+- Auto dev server startup
+- Screenshots & videos on failure
+- CI/CD ready with 2 retries
+
+📚 **[Complete testing guide →](./tests/README.md)**
 
 ## 🌍 Internationalization
 
@@ -149,17 +239,59 @@ Atoms principaux :
 
 ## 🚀 Deployment
 
+### Build for Production
+
 ```bash
-# Build optimisé pour production
+# Optimize and build
 npm run build
 
-# Le dossier dist/ contient les fichiers statiques prêts à déployer
+# Preview production build locally
+npm run preview
 ```
 
-Déployez sur :
-- **Vercel** : `vercel`
-- **Netlify** : Drag & drop du dossier `dist/`
-- **GitHub Pages** : Configurer GitHub Actions
+The `dist/` folder contains optimized static files ready to deploy.
+
+### Deploy to Vercel (Recommended)
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+**Environment variables** (optional):
+- `REACT_APP_ADMIN_HASH` - Super admin SHA-256 hash
+
+### Deploy to Netlify
+
+1. Build: `npm run build`
+2. Drag & drop `dist/` to Netlify dashboard
+3. Or use Netlify CLI: `netlify deploy --prod --dir=dist`
+
+### Deploy to GitHub Pages
+
+1. Add to `vite.config.js`:
+```javascript
+export default defineConfig({
+  base: '/farm-wallet-independant/',
+  // ... rest of config
+});
+```
+
+2. Build and deploy:
+```bash
+npm run build
+gh-pages -d dist
+```
+
+### Deploy Anywhere
+
+The wallet is 100% static - deploy `dist/` to any web server:
+- AWS S3 + CloudFront
+- DigitalOcean Spaces
+- Any static hosting provider
 
 ## 📄 Documentation Complète
 
@@ -205,41 +337,83 @@ npm run test
 ```
 farm-wallet-independant/
 ├── src/
-│   ├── components/         # Reusable UI components (custom, no frameworks)
-│   │   ├── UI.jsx         # Atomic components: Card, Button, Stack, etc.
-│   │   ├── Layout/        # TopBar, BottomNavigation, MobileLayout
-│   │   ├── ECashWallet.jsx
-│   │   ├── SendXEC.jsx
-│   │   └── TokenSend.jsx
-│   ├── pages/             # Main application pages
-│   │   ├── WalletDashboard.jsx
-│   │   ├── DirectoryPage.jsx
-│   │   ├── SendPage.jsx
-│   │   └── SettingsPage.jsx
-│   ├── hooks/             # Custom React hooks
-│   │   ├── useEcashWallet.js
-│   │   ├── useBalance.js
-│   │   ├── useToken.js
-│   │   └── useChronikWebSocket.js
-│   ├── services/          # Business logic & blockchain integration
-│   │   ├── ecashWallet.js     # EcashWallet class (core wallet logic)
-│   │   └── chronikClient.js   # Chronik API client
-│   ├── styles/            # CSS files (no Tailwind, pure CSS)
-│   │   ├── themes.css         # CSS variables (light/dark themes)
-│   │   ├── layout.css         # Layout structures
-│   │   ├── components.css     # Reusable component styles
-│   │   ├── home.css           # Dashboard styles
-│   │   └── send.css           # Send page styles
-│   ├── utils/             # Helper functions
-│   ├── i18n/              # Internationalization (fr/en)
-│   └── data/              # Static data (farms.json)
-├── docs/                  # Documentation
-│   ├── CONFORMITE_CAHIER_DES_CHARGES.md
+│   ├── components/            # Reusable UI components
+│   │   ├── UI.jsx            # Atomic: Card, Button, Stack
+│   │   ├── Layout/           # TopBar, BottomNavigation, MobileLayout
+│   │   ├── ECashWallet.jsx   # Wallet connection
+│   │   ├── SendXEC.jsx       # XEC transactions
+│   │   ├── TokenSend.jsx     # Token transactions
+│   │   ├── TokenSendForm.jsx # Token send form (extracted)
+│   │   ├── QrCodeScanner.jsx # QR scanning
+│   │   └── ChronikConnectionIndicator.jsx  # WebSocket status
+│   ├── pages/                # Application pages
+│   │   ├── WalletDashboard.jsx    # Dashboard v2 (farm selector, tabs)
+│   │   ├── DirectoryPage.jsx      # Farm directory (public)
+│   │   ├── SendPage.jsx           # Send XEC/Tokens
+│   │   ├── SettingsPage.jsx       # User settings
+│   │   ├── ManageTokenPage.jsx    # Token management (creators)
+│   │   ├── CreateTokenPage.jsx    # Token creation (admin)
+│   │   └── FavoritesPage.jsx      # Favorite farms
+│   ├── hooks/                # Custom React hooks
+│   │   ├── useEcashWallet.js      # Wallet initialization
+│   │   ├── useBalance.js          # Balance fetching
+│   │   ├── useToken.js            # Token data
+│   │   ├── useChronikWebSocket.js # Real-time updates
+│   │   ├── useAdmin.js            # Super admin detection
+│   │   ├── useFarms.js            # Farm data loading
+│   │   └── useXecPrice.js         # XEC/USD price
+│   ├── services/             # Business logic & blockchain
+│   │   ├── ecashWallet.js         # EcashWallet class (CORE)
+│   │   └── chronikClient.js       # Chronik API client
+│   ├── styles/               # Pure CSS files (no frameworks)
+│   │   ├── themes.css             # CSS variables (light/dark)
+│   │   ├── layout.css             # Layout structures
+│   │   ├── components.css         # Component styles
+│   │   ├── home.css               # Dashboard styles
+│   │   ├── sendxec.css            # Send form styles
+│   │   ├── chronik-indicator.css  # WebSocket indicator
+│   │   └── ...                    # Other page-specific styles
+│   ├── utils/                # Helper functions
+│   │   ├── validation.js          # Input sanitization
+│   │   ├── formatting.js          # Number/date formatting
+│   │   └── ...
+│   ├── i18n/                 # Internationalization
+│   │   ├── index.js               # i18n config
+│   │   └── locales/
+│   │       ├── fr.json            # French translations
+│   │       └── en.json            # English translations
+│   ├── data/                 # Static data
+│   │   └── farms.json             # Farm whitelist
+│   ├── atoms.js              # Jotai state atoms
+│   ├── App.jsx               # Root component
+│   └── main.jsx              # Entry point
+├── tests/                    # E2E tests (Playwright)
+│   ├── README.md                  # Testing guide
+│   ├── wallet-connection.spec.js  # Connection flow
+│   ├── farm-selection.spec.js     # Farm selector
+│   ├── token-send.spec.js         # Token send form
+│   ├── qr-scanner.spec.js         # QR scanner
+│   └── sendXEC.spec.js            # XEC send (existing)
+├── docs/                     # Documentation
 │   ├── WALLET_ARCHITECTURE.md
-│   └── WALLET_DASHBOARD_REDESIGN.md
-├── tests/                 # E2E tests (Playwright)
-└── farm-wallet-main-1/    # Original reference project
+│   ├── CONFORMITE_CAHIER_DES_CHARGES.md
+│   ├── WALLET_DASHBOARD_REDESIGN.md
+│   ├── CHRONIK_WEBSOCKET.md
+│   └── COMPONENTS.md              # Component reference
+├── scripts/                  # Utility scripts
+├── playwright.config.js      # Playwright test config
+├── vite.config.js            # Vite build config
+├── package.json              # Dependencies & scripts
+├── .env.example              # Environment template
+└── README.md                 # This file
 ```
+
+**Key Files:**
+- `src/services/ecashWallet.js` - **DO NOT MODIFY** (core blockchain logic)
+- `src/styles/themes.css` - CSS variables for theming
+- `src/components/UI.jsx` - Atomic components library
+- `src/atoms.js` - Global state management
+- `tests/` - Complete E2E test suite
 
 ## 🎨 CSS Architecture
 
@@ -272,28 +446,84 @@ Variables CSS pour light/dark mode :
 
 ### Stack eCash
 
-- **chronik-client** (v2.1.1) - Indexer blockchain eCash
-- **ecash-lib** (v4.5.2) - Construction et signature de transactions
-- **@scure/bip39** - Génération mnémonique
-- **@scure/bip32** - Dérivation HD
-- **ecashaddrjs** - Encodage adresses eCash
+- **chronik-client** (v2.1.0) - eCash blockchain indexer with WebSocket support
+- **ecash-lib** (v4.3.2) - Transaction construction and signing
+- **@scure/bip39** (v1.5.4) - Mnemonic generation (BIP39)
+- **@scure/bip32** (v1.5.0) - HD wallet derivation (BIP32)
+- **ecashaddrjs** (v2.0.0) - eCash address encoding/decoding
 
 ### Wallet Service
 
-Classe principale : `src/services/ecashWallet.js`
+Main class: `src/services/ecashWallet.js`
 
 ```javascript
-// Initialize wallet
+// Initialize wallet from mnemonic
 const wallet = new EcashWallet(mnemonic, hdPath);
 
-// Get balance
+// Get balance (spendable amount)
 const { balance, totalBalance } = await wallet.getBalance();
+// balance: spendable XEC (excluding dust)
+// totalBalance: all UTXOs
 
 // Send XEC
 const txid = await wallet.sendXec(toAddress, amountXec);
 
 // Get token balance
 const tokenBalance = await wallet.getTokenBalance(tokenId);
+
+// Send tokens
+const txid = await wallet.sendToken(toAddress, tokenId, amount);
+
+// Get Mint Batons (for creators)
+const mintBatons = await wallet.getMintBatons();
+```
+
+### Real-time Updates
+
+Chronik WebSocket integration in `src/hooks/useChronikWebSocket.js`:
+
+```javascript
+// Automatic subscription to wallet address
+// Triggers balance refresh on:
+// - New transaction (AddedToMempool)
+// - Confirmed transaction (Confirmed)
+// - New block (BlockConnected)
+
+// Connection status available:
+const { isConnected, lastError, reconnectAttempts } = useChronikWebSocket();
+```
+
+**Features:**
+- ⚡ Instant balance updates (no polling)
+- 🔄 Auto-reconnection with retry logic
+- 🟢 Visual connection indicator
+- 📡 Script-based subscription (more reliable than address)
+
+### Fee Structure
+
+- **XEC transactions:** 300 sats
+- **Token transactions:** 500 sats
+- **Dust limit:** 546 sats (enforced to prevent unspendable UTXOs)
+- **Minimum sendable:** 6 XEC (to ensure change output above dust)
+
+### Security Features
+
+- 🔐 **Super Admin:** SHA-256 hash-based authentication (no address exposure)
+- 🎫 **Creator Detection:** Mint Baton ownership verification
+- 🏷️ **Token Filtering:** farms.json whitelist system
+- 🔒 **Non-custodial:** Keys stored locally in browser (localStorage)
+- 🚫 **No server:** 100% client-side wallet logic
+
+**Admin Configuration:**
+```bash
+# In .env
+REACT_APP_ADMIN_HASH=<sha256-hash-of-admin-address>
+```
+
+**Creator Verification:**
+```javascript
+// Automatic detection via Mint Baton ownership
+const isCreator = wallet.getMintBatons().length > 0;
 ```
 npm run lint
 
