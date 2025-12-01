@@ -49,9 +49,6 @@ const WalletDashboard = () => {
   // Scan loading state
   const [scanLoading, setScanLoading] = useState(false);
   
-  // DEBUG: Log address
-  console.log('📍 ADRESSE DASHBOARD:', address);
-  
   // Atoms
   const [walletConnected] = useAtom(walletConnectedAtom);
   const [selectedFarm, setSelectedFarm] = useAtom(selectedFarmAtom);

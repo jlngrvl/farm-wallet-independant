@@ -51,9 +51,8 @@ const SettingsPage = () => {
         const balanceData = await walletInstance.getBalance();
         // CRITICAL: Utiliser balanceData.balance (solde XEC pur)
         setBalance(balanceData.balance || 0);
-        console.log('📊 Solde chargé (getBalance):', balanceData);
       } catch (err) {
-        console.warn('⚠️ Erreur chargement solde:', err);
+        console.error('Error loading balance:', err);
         setBalance(0);
       } finally {
         setBalanceLoading(false);

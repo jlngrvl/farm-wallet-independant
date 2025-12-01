@@ -1,13 +1,82 @@
 # 🎯 NEXT ACTIONS - À Faire Maintenant
 
 **Date** : 1er décembre 2025  
-**Statut Projet** : 🟢 Prêt pour développement
+**Statut Projet** : 🟢 Priorité #1 & #2 TERMINÉES ✅
 
 ---
 
-## ⚡ URGENT - Faire MAINTENANT (30 min)
+## ✅ TERMINÉ
 
-### 🧹 Nettoyage Dépendances
+### ✅ Priorité #1: Nettoyage Dépendances
+- ✅ Packages extraneous supprimés (0 vs ~30)
+- ✅ Build OK | Dev OK
+- ✅ Repository créé: https://github.com/jlngrvl/farm-wallet-independant
+
+### ✅ Priorité #2: Logs Debug Supprimés
+- ✅ WalletDashboard.jsx nettoyé
+- ✅ SettingsPage.jsx nettoyé
+
+---
+
+## ⚡ PRIORITÉ #3 - MAINTENANT (4-6h)
+
+### 🎨 Dashboard v2 Implementation
+
+**Référence** : `docs/WALLET_DASHBOARD_REDESIGN.md`
+
+**Fonctionnalités à implémenter** :
+
+1. **Sélecteur de Ferme (Dropdown)** - 1-2h
+   - Liste favoris uniquement
+   - Bouton "Choisir une ferme" si vide
+   - Checkmark ✓ pour fermes vérifiées
+   - Auto-sélection si 1 seul favori
+
+2. **Balance Split 70/30** - 1-2h
+   ```
+   ┌──────────────────────────┬──────────┐
+   │  Token Balance (70%)     │ XEC (30%)│
+   │  Grande police grasse    │ Petite   │
+   └──────────────────────────┴──────────┘
+   ```
+   - Token à gauche (2.5rem bold, couleur primaire)
+   - XEC à droite (1.5rem, label "Frais réseau")
+   - Séparateur vertical
+
+3. **Onglets Recevoir/Envoyer** - 2h
+   - Tabs UI (Recevoir actif par défaut)
+   - Recevoir : QR code + adresse copiable
+   - Envoyer : Formulaire envoi (réutiliser SendXEC)
+
+**Fichiers à modifier** :
+- `src/pages/WalletDashboard.jsx` (structure)
+- `src/styles/home.css` (layout 70/30, tabs)
+
+**Commandes** :
+```bash
+# Créer une branche pour Dashboard v2
+git checkout -b feature/dashboard-v2
+
+# Après implémentation
+npm run dev  # Tester
+npm run build  # Vérifier compilation
+git add .
+git commit -m "feat: implement Dashboard v2 (Priority #3)"
+```
+
+---
+
+## 📚 Documents à Consulter
+
+- [ROADMAP.md](./ROADMAP.md) - Vision long terme
+- [PRIORITIES.md](./PRIORITIES.md) - Toutes priorités
+- [docs/WALLET_DASHBOARD_REDESIGN.md](./docs/WALLET_DASHBOARD_REDESIGN.md) - Specs Dashboard v2
+- [QUICK_START.md](./QUICK_START.md) - Guide développement
+
+---
+
+**Dernière mise à jour** : 1er décembre 2025
+
 
 ```bash
 # Dans le terminal, exécuter :
