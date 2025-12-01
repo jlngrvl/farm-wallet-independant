@@ -41,6 +41,26 @@
     "selectToken": "Sélectionner un jeton",
     "current": "Actuel"
   },
+  "farm_selector": {
+    "title": "Sélectionner une ferme",
+    "placeholder": "🌾 Sélectionner une ferme",
+    "noFavorites": "Aucune ferme favorite",
+    "addFavorite": "➕ Choisir une ferme favorite"
+  },
+  "balance_display": {
+    "tokenBalance": "Solde Token",
+    "xecBalance": "XEC",
+    "networkFees": "Frais réseau",
+    "selectFarm": "Sélectionnez une ferme",
+    "loading": "Chargement..."
+  },
+  "action_tabs": {
+    "receive": "📥 Recevoir",
+    "send": "📤 Envoyer",
+    "yourAddress": "Votre adresse eCash",
+    "copyAddress": "📋 Copier",
+    "addressCopied": "Adresse copiée !"
+  },
   "favorites": {
     "description": "Retrouvez ici vos producteurs préférés pour un accès rapide.",
     "empty": "Aucune ferme favorite pour le moment. Ajoutez des fermes depuis l'annuaire !",
@@ -94,10 +114,13 @@
     "recoveryPhrase": "Phrase de récupération (Mot de passe)",
     "mnemonicPlaceholder": "Votre phrase de récupération apparaîtra ici...",
     "mnemonicWarning": "Sauvegardez ces 12 mots sur papier. C'est votre seule façon de récupérer vos jetons.",
-    "mnemonicCopied": "Copié ! Phrase sauvegardée.",
+    "mnemonicCopied": "Copié ! Phrase sauvegardée.",
     "loadingHint": "Cela peut prendre quelques instants lors de la première connexion...",
     "connecting": "Connexion à l'infrastructure blockchain eCash via Chronik.",
     "connectingInfo": "Cela peut prendre quelques instants lors du premier chargement.",
+    "farmSelected": "sélectionnée",
+    "addressCopied": "Adresse copiée !",
+    "copyFailed": "Échec de la copie",
     "errorLoading": "Erreur lors du chargement de la bibliothèque de portefeuille",
     "checkFile": "Veuillez vérifier que minimal-xec-wallet.min.js est disponible dans le dossier public.",
     "loadingLibrary": "Chargement de la bibliothèque de portefeuille eCash...",

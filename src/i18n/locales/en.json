@@ -42,6 +42,26 @@
     "selectToken": "Select a token",
     "current": "Current"
   },
+  "farm_selector": {
+    "title": "Select a farm",
+    "placeholder": "🌾 Select a farm",
+    "noFavorites": "No favorite farms",
+    "addFavorite": "➕ Choose a favorite farm"
+  },
+  "balance_display": {
+    "tokenBalance": "Token Balance",
+    "xecBalance": "XEC",
+    "networkFees": "Network fees",
+    "selectFarm": "Select a farm",
+    "loading": "Loading..."
+  },
+  "action_tabs": {
+    "receive": "📥 Receive",
+    "send": "📤 Send",
+    "yourAddress": "Your eCash address",
+    "copyAddress": "📋 Copy",
+    "addressCopied": "Address copied!"
+  },
   "favorites": {
     "description": "Find your favorite producers here for quick access.",
     "empty": "No favorite farms yet. Add farms from the directory!",
@@ -99,6 +119,9 @@
     "loadingHint": "This may take a few moments during first connection...",
     "connecting": "Connecting to eCash blockchain infrastructure via Chronik.",
     "connectingInfo": "This may take a few moments on first load.",
+    "farmSelected": "selected",
+    "addressCopied": "Address copied!",
+    "copyFailed": "Copy failed",
     "errorLoading": "Error loading wallet library",
     "checkFile": "Please check that minimal-xec-wallet.min.js is available in the public folder.",
     "loadingLibrary": "Loading eCash wallet library...",
